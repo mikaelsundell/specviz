@@ -1,4 +1,4 @@
-// Copyright 2022-present Contributors to the jobman project.
+// Copyright 2022-present Contributors to the specviz project.
 // SPDX-License-Identifier: BSD-3-Clause
 // https://github.com/mikaelsundell/specviz
 

@@ -8,7 +8,6 @@
 #include "specfile.h"
 #include "stylesheet.h"
 #include "qcustomplot/qcustomplot.h"
-#include "widgets.h"
 #include <QActionGroup>
 #include <QClipboard>
 #include <QColorDialog>
@@ -43,9 +42,6 @@ class SpecvizPrivate : public QObject {
     public Q_SLOTS:
         void open();
         void itemChanged(QTreeWidgetItem *item, int column);
-        void showSelected();
-        void hideSelected();
-        void deleteSelected();
         void clear();
         void openGithubReadme();
         void openGithubIssues();
@@ -77,8 +73,8 @@ SpecvizPrivate::init()
     d.ui->setupUi(d.window.data());
     // tree
     tree()->setHeaderLabels(QStringList() << "Dataset/ channel" << "Source");
-    tree()->setColumnWidth(TreeItem::Key, 160);
-    tree()->setColumnWidth(TreeItem::Value, 100);
+    tree()->setColumnWidth(0, 160); // name column
+    tree()->setColumnWidth(1, 100); // path column
     // connect
     connect(d.ui->fileOpen, &QAction::triggered, this, &SpecvizPrivate::open);
     connect(d.ui->treeWidget, &QTreeWidget::itemChanged, this, &SpecvizPrivate::itemChanged);
@@ -203,8 +199,6 @@ SpecvizPrivate::eventFilter(QObject* object, QEvent* event)
 void
 SpecvizPrivate::enable(bool enable)
 {
-    //d.ui->collapse->setEnabled(enable);
-    //d.ui->expand->setEnabled(enable);
 }
 
 void
@@ -219,31 +213,48 @@ SpecvizPrivate::profile()
 void
 SpecvizPrivate::stylesheet()
 {
-    QString path = platform::getApplicationPath() + "/Resources/App.css";
+    QString path = platform::getApplicationPath() + "/Resources/App.qss";
     auto ss = Stylesheet::instance();
-    ss->setColor("basecolor", QColor::fromHslF(220.0 / 360.0, 0.3, 0.06));
-    ss->setColor("accent", QColor::fromHslF(216.0 / 360.0, 0.82, 0.20));
-    if (ss->loadCss(path)) {
-        qApp->setStyleSheet(ss->compiled());
+    if (ss->loadQss(path)) {
+        ss->applyQss(ss->compiled());
     }
     // qcustomplot
-    d.ui->plotWidget->setBackground(QBrush(QColor::fromHslF(220 / 360.0, 0.3, 0.06)));
-    d.ui->plotWidget->axisRect()->setBackground(QBrush(QColor::fromHslF(220 / 360.0, 0.3, 0.06)));
+    QColor base = ss->color(Stylesheet::Base);
+    d.ui->plotWidget->setBackground(QBrush(base));
+    d.ui->plotWidget->axisRect()->setBackground(QBrush(base));
 
-    QPen axisPen(Qt::white);
+    QColor text = ss->color(Stylesheet::Text);
+    QPen axisPen(text);
     d.ui->plotWidget->xAxis->setBasePen(axisPen);
     d.ui->plotWidget->yAxis->setBasePen(axisPen);
     d.ui->plotWidget->xAxis->setTickPen(axisPen);
     d.ui->plotWidget->yAxis->setTickPen(axisPen);
     d.ui->plotWidget->xAxis->setSubTickPen(axisPen);
     d.ui->plotWidget->yAxis->setSubTickPen(axisPen);
-    d.ui->plotWidget->xAxis->setTickLabelColor(Qt::white);
-    d.ui->plotWidget->yAxis->setTickLabelColor(Qt::white);
+    d.ui->plotWidget->xAxis->setTickLabelColor(text);
+    d.ui->plotWidget->yAxis->setTickLabelColor(text);
 
-    QPen gridPen(QColor(80, 80, 80));
+    QFont labelFont = d.ui->plotWidget->xAxis->labelFont();
+    labelFont.setPointSize(11);
+    d.ui->plotWidget->xAxis->setLabelFont(labelFont);
+    d.ui->plotWidget->yAxis->setLabelFont(labelFont);
+    d.ui->plotWidget->xAxis->setLabelColor(text);
+    d.ui->plotWidget->yAxis->setLabelColor(text);
+
+    QColor grid = ss->color(Stylesheet::Border);
+    QPen gridPen(grid);
     d.ui->plotWidget->xAxis->grid()->setPen(gridPen);
     d.ui->plotWidget->yAxis->grid()->setPen(gridPen);
-    
+    d.ui->plotWidget->legend->setBrush(QBrush(base));
+
+    QColor border = ss->color(Stylesheet::Border);
+    d.ui->plotWidget->legend->setBorderPen(QPen(border));
+
+    QFont legendFont = d.ui->plotWidget->legend->font();
+    legendFont.setPointSize(11);
+    d.ui->plotWidget->legend->setFont(legendFont);
+    d.ui->plotWidget->legend->setTextColor(text);
+    d.ui->plotWidget->legend->setIconBorderPen(QPen(border));
 }
 
 void
@@ -276,54 +287,13 @@ SpecvizPrivate::itemChanged(QTreeWidgetItem *item, int column)
         if (graphIndex >= 0 && graphIndex < d.ui->plotWidget->graphCount()) {
             d.ui->plotWidget->graph(graphIndex)->setVisible(visible);
         }
-        QTreeWidgetItem *parent = item->parent();
-        int checkedCount = 0;
-        for (int i = 0; i < parent->childCount(); ++i) {
-            if (parent->child(i)->checkState(0) == Qt::Checked) {
-                checkedCount++;
-            }
-        }
-        if (checkedCount == parent->childCount()) {
-            parent->setCheckState(0, Qt::Checked);
-        }
-        else if (checkedCount == 0) {
-            parent->setCheckState(0, Qt::Unchecked);
-        }
-        else {
-            parent->setCheckState(0, Qt::PartiallyChecked);
-        }
     }
     d.ui->plotWidget->replot();
 }
 
 void
-SpecvizPrivate::showSelected()
-{
-    //if (selection()->paths().size()) {
-   //     d.controller->visiblePaths(d.selection->paths(), true);
-   // }
-}
-
-void
-SpecvizPrivate::hideSelected()
-{
-    //if (selection()->paths().size()) {
-    //    d.controller->visiblePaths(d.selection->paths(), false);
-    //}
-}
-
-void
-SpecvizPrivate::deleteSelected()
-{
-    //if (selection()->paths().size()) {
-    //    d.controller->removePaths(d.selection->paths());
-    //}
-}
-
-void
 SpecvizPrivate::clear()
 {
-    //d.ui->clear->setText(QString());
 }
 
 void

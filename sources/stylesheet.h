@@ -5,24 +5,45 @@
 #pragma once
 
 #include <QObject>
+#include <QColor>
+#include <QScopedPointer>
+#include <QHash>
 
 class StylesheetPrivate;
 class Stylesheet : public QObject {
-public:
     Q_OBJECT
 public:
-    static Stylesheet* instance();
-    bool loadCss(const QString& path);
-    QString compiled() const;
+    enum ColorRole {
+        Base,
+        BaseAlt,
+        Accent,
+        AccentAlt,
+        Text,
+        TextDisabled,
+        Highlight,
+        Border,
+        Scrollbar,
+        Progress,
+    };
+    Q_ENUM(ColorRole)
 
-    void setColor(const QString& name, const QColor& color);
-    QColor color(const QString& name) const;
+    static Stylesheet* instance();
+    void applyQss(const QString& qss);
+    bool loadQss(const QString& path);
+    QString compiled() const;
+    
+
+    void setColor(ColorRole role, const QColor& color);
+    QColor color(ColorRole role) const;
 
 private:
     Stylesheet();
     ~Stylesheet();
     Stylesheet(const Stylesheet&) = delete;
     Stylesheet& operator=(const Stylesheet&) = delete;
+
+    QString roleName(ColorRole role) const;
+
     class Deleter {
     public:
         static void cleanup(Stylesheet* pointer) { delete pointer; }

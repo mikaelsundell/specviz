@@ -1,6 +1,6 @@
-/* Copyright 2022-present Contributors to the jobman project.
+/* Copyright 2022-present Contributors to the specviz project.
  * SPDX-License-Identifier: BSD-3-Clause
- * https://github.com/mikaelsundell/jobman
+ * https://github.com/mikaelsundell/specviz
  */
 
 /* Top-level widgets */
@@ -8,7 +8,7 @@ QMainWindow,
 QDialog,
 QDockWidget
 {
-    background-color: hsl(220, 30%, 6%);
+    background-color: $base;
 }
 
 QMainWindow::separator {
@@ -22,11 +22,11 @@ QCheckBox
     font-size: 11px;
     spacing: 5px;
     padding-left: 2px;
-    color: hsl(0, 0%, 80%);
+    color: $text;
 }
 
 QCheckBox::indicator {
-    background-color: hsl(220, 8%, 15%);
+    background-color: $basealt;
     width: 20px;
     height: 20px;
 }
@@ -38,15 +38,15 @@ QCheckBox::indicator:checked {
 /* QComboBox widgets */
 QComboBox {
     font-size: 11px;
-    color: hsl(0, 0%, 80%);
-    background-color: hsl(220, 8%, 15%);
+    color: $text;
+    background-color: $basealt;
     padding: 4px;
     padding-left: 10px;
     margin-bottom: 2px;
     border-radius: 0px;
     outline: none;
     border: 0px;
-    selection-background-color: hsl(220, 30%, 12%);
+    selection-background-color: $basealt;
 }
 
 QComboBox::down-arrow {
@@ -66,11 +66,11 @@ QComboBox::drop-down {
 
 QComboBox QAbstractItemView {
     color: #FFFFFF;
-    background: hsl(220, 8%, 15%);
+    background: $basealt;
     border: none;
     outline: none;
-    selection-background-color: hsl(220, 30%, 12%);
-    selection-color: hsl(0, 0%, 80%);
+    selection-background-color: $basealt;
+    selection-color: $text;
 }
 
 QComboBox QAbstractItemView::item {
@@ -80,8 +80,8 @@ QComboBox QAbstractItemView::item {
 }
 
 QComboBox QAbstractItemView::item:selected {
-    background: hsl(220, 30%, 12%);
-    color: hsl(0, 0%, 80%);
+    background: $basealt;
+    color: $text;
     outline: none;
     border: none;
 }
@@ -89,19 +89,19 @@ QComboBox QAbstractItemView::item:selected {
 /* QLabel widgets */
 QLabel {
     font-size: 11px;
-    color: hsl(0, 0%, 80%);
+    color: $text;
 }
 
 /* QLineEdit widgets */
 QLineEdit
 {
     font-size: 11px;
-    color: hsl(0, 0%, 80%);
-    background-color: hsl(220, 8%, 15%);
+    color: $text;
+    background-color: $basealt;
     padding: 4px;
     padding-left: 10px;
     border-radius: 0px;
-    selection-background-color: hsl(220, 30%, 12%);
+    selection-background-color: $basealt;
 }
 
 /* QListWidget widgets */
@@ -109,39 +109,38 @@ QListView
 {
     font-size: 11px;
     font-weight: normal;
-    color: hsl(0, 0%, 80%);
+    color: $text;
     outline: none;
-    background-color: hsl(220, 30%, 6%);
-    selection-background-color: hsl(220, 30%, 8%);
+    background-color: $base;
+    selection-background-color: $basealt;
 }
 
 QListView::item {
     height: 25px;
-    background: hsl(220, 30%, 8%);
+    background: $basealt;
 }
 
 QListView::item:alternate {
-    background: hsl(220, 30%, 6%);
+    background: $base;
 }
 
 QListView::item:selected:active {
-    background: hsl(220, 30%, 12%);
+    background: $basealt;
 }
 
 QListView::item:selected:!active {
-    color: hsl(0, 0%, 80%);
-    background: hsl(220, 30%, 12%);
+    color: $text;
+    background: $basealt;
 }
 
 /* QMenu widgets */
 QMenu
 {
     font-size: 10px;
-    color: hsl(0, 0%, 80%);
-    background-color: hsl(220, 30%, 6%);
+    color: $text;
+    background-color: $base;
     padding: 4px;
     border-radius: 0px;
-    
 }
 
 QMenu::item {
@@ -150,11 +149,11 @@ QMenu::item {
 }
 
 QMenu::item:selected {
-    background: hsl(220, 30%, 12%);
+    background: $basealt;
 }
 
 QMenu::item:disabled {
-    color: gray;
+    color: $textdisabled;
     background-color: transparent;
 }
 
@@ -172,7 +171,7 @@ QWidget#monitorBar,
 QWidget#preferencesBar,
 QWidget#presetBar
 {
-    background-color: hsl(220, 30%, 12%);
+    background-color: $basealt;
     border-radius: 5px;
     border-bottom-left-radius: 0px;
     border-bottom-right-radius: 0px;
@@ -185,7 +184,7 @@ QWidget#optionsWidget,
 QWidget#preferencesWidget,
 QWidget#presetWidget
 {
-    background-color: hsl(220, 30%, 8%);
+    background-color: $basealt;
     border-radius: 5px;
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
@@ -193,22 +192,22 @@ QWidget#presetWidget
 
 QWidget#optionswidget
 {
-    background-color: hsl(220, 30%, 8%);
+    background-color: $basealt;
 }
 
 /* QPushButton widgets */
 QPushButton
 {
     font-size: 11px;
-    color:  hsl(0, 0%, 80%);
+    color: $text;
     background-color: 
     QLinearGradient( 
         x1: 0, y1: 0, x2: 0, y2: 1, 
-        stop: 0 hsl(220, 6%, 20%),
-        stop: 1.0 hsl(220, 6%, 24%)
+        stop: 0 $accent,
+        stop: 1.0 $accentalt
     );
     height: 20px;        
-    border: 1px solid hsl(220, 3%, 33%);
+    border: 1px solid $border;
     border-radius: 0px;        
     padding: 2px;
     padding-left: 5px;
@@ -223,14 +222,14 @@ QPushButton:default
     background-color: 
     QLinearGradient( 
         x1: 0, y1: 0, x2: 0, y2: 1, 
-        stop: 0 hsl(220, 6%, 20%),
-        stop: 1.0 hsl(220, 6%, 24%)
+        stop: 0 $accent,
+        stop: 1.0 $accentalt
     );
 }
 
 QPushButton:disabled
 {
-    color:  hsl(0, 0%, 40%);
+    color: $textdisabled;
 }
 
 QPushButton:pressed
@@ -238,8 +237,8 @@ QPushButton:pressed
     background-color: 
     QLinearGradient( 
         x1: 0, y1: 0, x2: 0, y2: 1, 
-        stop: 0 hsl(220, 6%, 14%),
-        stop: 1.0 hsl(220, 6%, 18%)
+        stop: 0 $accent,
+        stop: 1.0 $accentalt
     );
 }
 
@@ -248,42 +247,42 @@ QProgressBar {
     min-height: 10px;
     max-height: 10px; 
     border-radius: 4px;
-    background-color: hsl(220, 8%, 15%);
+    background-color: $basealt;
 }
 
 QProgressBar::chunk {
     border-radius: 4px;
-    background-color: hsl(216, 82%, 20%);
+    background-color: $progress;
 }
 
 /* QScrollArea widgets */
 QScrollArea
 {
-    background-color: hsl(220, 30%, 8%);
+    background-color: $basealt;
     border: 0px;
 }
 
 /* QSplitter widgets */
 QSplitter::handle {
-    background-color: hsl(220, 30%, 8%);
+    background-color: $basealt;
     height: 5px;
 }
 
 /* QTextBrowser widgets */
 QTextBrowser
 {
-    color: hsl(0, 0%, 80%);
+    color: $text;
     font-size: 11px;
     font-weight: normal;
     border: 0px;
-    background: hsl(220, 30%, 6%);
-    selection-background-color: hsl(220, 30%, 12%);
+    background: $base;
+    selection-background-color: $basealt;
 }
 
 QTextBrowser:!active 
 {
-    color: hsl(0, 0%, 80%);
-    background: hsl(220, 30%, 6%);
+    color: $text;
+    background: $base;
 }
 
 /* QTreeView widgets */
@@ -291,40 +290,39 @@ QTreeView
 {
     font-size: 11px;
     font-weight: normal;
-    color: hsl(0, 0%, 80%);
+    color: $text;
     border: 0px;
     outline: none;
     selection-background-color: transparent;
-    background-color: hsl(220, 30%, 6%);
-    alternate-background-color: hsl(220, 30%, 6%);
-
+    background-color: $base;
+    alternate-background-color: $base;
 }
 
 QTreeView::item {
     height: 24px;
-    background: hsl(220, 30%, 8%);
+    background: $basealt;
 }
 
 QTreeView::item:alternate {
-    background: hsl(220, 30%, 6%);
+    background: $base;
 }
 
 QTreeView::item:selected:active {
-    background: hsl(220, 30%, 12%);
+    background: $basealt;
 }
 
 QTreeView::item:selected:!active {
-    color: hsl(0, 0%, 80%);
-    background: hsl(220, 30%, 12%);
+    color: $text;
+    background: $basealt;
 }
 
 QTreeView QHeaderView:section
 {
-    color: hsl(0, 0%, 80%);
+    color: $text;
     font-size: 10px;
     font-weight: normal;
-    border: 1px solid hsl(220, 0%, 10%);
-    background: hsl(220, 30%, 12%);
+    border: 1px solid $border;
+    background: $basealt;
     padding: 4px;
     padding-left: 10px;
 }
@@ -347,10 +345,10 @@ QToolButton
     background-color: 
     QLinearGradient( 
         x1: 0, y1: 0, x2: 0, y2: 1, 
-        stop: 0 hsl(220, 6%, 20%),
-        stop: 1.0 hsl(220, 6%, 24%)
+        stop: 0 $accent,
+        stop: 1.0 $accentalt
     );   
-    border: 1px solid hsl(220, 3%, 33%);
+    border: 1px solid $border;
     padding: 2px;
 }
 
@@ -359,32 +357,14 @@ QToolButton:pressed
     background-color: 
     QLinearGradient( 
         x1: 0, y1: 0, x2: 0, y2: 1, 
-        stop: 0 hsl(220, 6%, 14%),
-        stop: 1.0 hsl(220, 6%, 18%)
+        stop: 0 $accent,
+        stop: 1.0 $accentalt
     );
 }
 
-QToolButton#togglePreset
-{
-    padding: 2px;
-    border: 0px;
-    background-color: transparent;
-}
-
-QToolButton#toggleFiledrop
-{
-    padding: 2px;
-    border: 0px;
-    background-color: transparent;
-}
-
-QToolButton#showSaveto
-{
-    padding: 2px;
-    border: 0px;
-    background-color: transparent;
-}
-
+QToolButton#togglePreset,
+QToolButton#toggleFiledrop,
+QToolButton#showSaveto,
 QToolButton#toggleLog
 {
     padding: 2px;
@@ -394,20 +374,20 @@ QToolButton#toggleLog
 
 /* QScrollBar widgets */
 QScrollBar:horizontal {
-    background: hsl(220, 8%, 15%);
+    background: $basealt;
     height: 6px;
     margin: 0;
     border: none;
 }
 
 QScrollBar::handle:horizontal {
-    background: hsl(0, 0%, 80%);
+    background: $text;
     min-width: 6px;
     border-radius: 5px;
 }
 
 QScrollBar::handle:horizontal:hover {
-    background: hsl(0, 0%, 70%);
+    background: $scrollbar;
 }
 
 QScrollBar::add-line:horizontal,
@@ -429,20 +409,20 @@ QScrollBar::sub-page:horizontal {
 }
 
 QScrollBar:vertical {
-    background: hsl(220, 8%, 15%);
+    background: $basealt;
     width: 6px;
     margin: 0;
     border: none;
 }
 
 QScrollBar::handle:vertical {
-    background: hsl(0, 0%, 80%);
+    background: $text;
     min-height: 6px;
     border-radius: 5px;
 }
 
 QScrollBar::handle:vertical:hover {
-    background: hsl(0, 0%, 80%);
+    background: $scrollbar;
 }
 
 QScrollBar::add-line:vertical,
@@ -464,7 +444,7 @@ QScrollBar::sub-page:vertical {
 }
 
 QAbstractScrollArea::corner { 
-    background: hsl(220, 8%, 15%);
+    background: $basealt;
 }
 
 /* QSlider widgets */
@@ -476,8 +456,8 @@ QSlider
 QSlider::groove:horizontal
 {
     height: 5px;
-    background-color: hsl(220, 8%, 15%);
-    border: 1px solid black;
+    background-color: $basealt;
+    border: 1px solid $border;
     border-radius: 3px;
     margin: 2px 0;
 }
@@ -485,15 +465,15 @@ QSlider::groove:horizontal
 QSlider::sub-page:horizontal
 {
     height: 5px;
-    background-color: hsl(220, 6%, 30%);
-    border: 1px solid black;
+    background-color: $accentalt;
+    border: 1px solid $border;
     border-radius: 4px;
     margin: 2px 0;
 }
 
 QSlider::handle:horizontal
 {
-    background: hsl(0, 0%, 59%);
+    background: $scrollbar;
     width: 13px;
     margin: -4px 0;
     border-radius: 6px;
@@ -505,6 +485,6 @@ QWidget#renderWidget,
 QWidget#outlinerWidget,
 QWidget#inspectorWidget
 {
-    background-color: hsl(220, 30%, 8%);
+    background-color: $basealt;
     border-radius: 10px;
 }
