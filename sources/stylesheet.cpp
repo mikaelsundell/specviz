@@ -36,7 +36,7 @@ Stylesheet::Stylesheet()
     map(BaseAlt, QColor::fromHsl(220, 30, 12));
     map(Accent, QColor::fromHsl(220, 6, 20));
     map(AccentAlt, QColor::fromHsl(220, 6, 24));
-    map(Text, QColor::fromHsl(0, 0, 80));
+    map(Text, QColor::fromHsl(0, 0, 180));
     map(TextDisabled,  QColor::fromHsl(0, 0, 40));
     map(Highlight, QColor::fromHsl(216, 82, 40));
     map(Border, QColor::fromHsl(220, 3, 33));

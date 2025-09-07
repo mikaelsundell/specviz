@@ -36,7 +36,7 @@ class SpecFile {
             return {
                 []() { return new AmpasReader(); },
                 []() { return new ArgyllReader(); },
-                []() { return new SeconicReader(); }
+                []() { return new SekonicReader(); }
             };
         }
         std::unique_ptr<SpecReader> reader;

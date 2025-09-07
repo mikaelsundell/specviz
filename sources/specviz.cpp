@@ -41,7 +41,8 @@ class SpecvizPrivate : public QObject {
 
     public Q_SLOTS:
         void open();
-        void itemChanged(QTreeWidgetItem *item, int column);
+        void itemChanged(QTreeWidgetItem* item, int column);
+        void itemSelectionChanged();
         void clear();
         void openGithubReadme();
         void openGithubIssues();
@@ -71,6 +72,10 @@ SpecvizPrivate::init()
     profile();
     d.ui.reset(new Ui_Specviz());
     d.ui->setupUi(d.window.data());
+    // header
+    header()->setHeaderLabels(QStringList() << "Name" << "Value");
+    header()->setColumnWidth(0, 160);
+    header()->setColumnWidth(1, 100);
     // tree
     tree()->setHeaderLabels(QStringList() << "Dataset/ channel" << "Source");
     tree()->setColumnWidth(0, 160); // name column
@@ -78,6 +83,7 @@ SpecvizPrivate::init()
     // connect
     connect(d.ui->fileOpen, &QAction::triggered, this, &SpecvizPrivate::open);
     connect(d.ui->treeWidget, &QTreeWidget::itemChanged, this, &SpecvizPrivate::itemChanged);
+    connect(d.ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &SpecvizPrivate::itemSelectionChanged);
     // stylesheet
     stylesheet();
     // debug
@@ -101,12 +107,13 @@ SpecvizPrivate::loadDataset(const QString& filename)
     }
     
     auto ds = spec.data();
-    QTreeWidgetItem *rootItem = new QTreeWidgetItem(tree());
-    rootItem->setText(0, ds.header.value("model").toString());
-    rootItem->setText(1, QFileInfo(filename).fileName());
-    rootItem->setCheckState(0, Qt::Checked);
-    rootItem->setData(0, Qt::UserRole, QVariant::fromValue(d.datasets.size()));
-
+    d.datasets.append(ds);
+    QTreeWidgetItem *treeItem = new QTreeWidgetItem(tree());
+    treeItem->setText(0, ds.header.value("model").toString());
+    treeItem->setText(1, QFileInfo(filename).fileName());
+    treeItem->setCheckState(0, Qt::Checked);
+    treeItem->setData(0, Qt::UserRole, QVariant::fromValue(d.datasets.size()-1));
+    
     for (int i = 0; i < ds.indices.size(); ++i) {
         d.ui->plotWidget->addGraph();
         int graphIndex = d.ui->plotWidget->graphCount() - 1;
@@ -141,22 +148,15 @@ SpecvizPrivate::loadDataset(const QString& filename)
             }
         }
         graph->setData(x, y);
-        QTreeWidgetItem *child = new QTreeWidgetItem(rootItem);
+        QTreeWidgetItem *child = new QTreeWidgetItem(treeItem);
         child->setText(0, ds.indices[i]);
         child->setCheckState(0, Qt::Checked);
         child->setData(0, Qt::UserRole, graphIndex);
         d.ui->plotWidget->graph(graphIndex)->setVisible(true);
     }
-
-    tree()->expandItem(rootItem);
-    d.datasets.append(ds);
+    tree()->expandItem(treeItem);
+    tree()->setCurrentItem(treeItem);
     
-    d.ui->plotWidget->legend->setVisible(true);
-    d.ui->plotWidget->xAxis->setLabel("Wavelength (nm)");
-    d.ui->plotWidget->yAxis->setLabel("Relative Sensitivity");
-    d.ui->plotWidget->rescaleAxes();
-    d.ui->plotWidget->replot();
-
     return true;
 }
 
@@ -288,6 +288,38 @@ SpecvizPrivate::itemChanged(QTreeWidgetItem *item, int column)
             d.ui->plotWidget->graph(graphIndex)->setVisible(visible);
         }
     }
+    d.ui->plotWidget->replot();
+}
+
+void
+SpecvizPrivate::itemSelectionChanged()
+{
+    QTreeWidgetItem* rootItem = d.ui->treeWidget->currentItem();
+    while (rootItem->parent()) {
+        rootItem = rootItem->parent();
+    }
+
+    int datasetIndex = rootItem->data(0, Qt::UserRole).toInt();
+    const auto& ds = d.datasets[datasetIndex];
+
+    header()->clear();
+    QTreeWidgetItem *headerItem = new QTreeWidgetItem(header());
+    headerItem->setText(0, "header");
+    headerItem->setFlags(headerItem->flags() & ~Qt::ItemIsUserCheckable);
+    
+    for (auto it = ds.header.constBegin(); it != ds.header.constEnd(); ++it) {
+        QTreeWidgetItem *meta = new QTreeWidgetItem(headerItem);
+        meta->setText(0, it.key());
+        meta->setText(1, it.value().toString());
+        meta->setFlags(meta->flags() & ~Qt::ItemIsUserCheckable);
+    }
+    
+    header()->expandItem(headerItem);
+    
+    d.ui->plotWidget->legend->setVisible(true);
+    d.ui->plotWidget->xAxis->setLabel("Wavelength (nm)");
+    d.ui->plotWidget->yAxis->setLabel("Relative Sensitivity");
+    d.ui->plotWidget->rescaleAxes();
     d.ui->plotWidget->replot();
 }
 

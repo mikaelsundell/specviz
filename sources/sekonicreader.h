@@ -6,7 +6,7 @@
 
 #include "specreader.h"
 
-class SeconicReader : public SpecReader {
+class SekonicReader : public SpecReader {
     public:
         Dataset read(const QString& fileName) override;
         QStringList extensions() override {
