@@ -5,9 +5,9 @@
 #include "specviz.h"
 #include "icctransform.h"
 #include "platform.h"
+#include "qcustomplot/qcustomplot.h"
 #include "specfile.h"
 #include "stylesheet.h"
-#include "qcustomplot/qcustomplot.h"
 #include <QActionGroup>
 #include <QClipboard>
 #include <QColorDialog>
@@ -25,37 +25,37 @@
 
 class SpecvizPrivate : public QObject {
     Q_OBJECT
-    public:
-        SpecvizPrivate();
-        void init();
-        bool loadDataset(const QString& filename);
-        QCustomPlot* plot();
-        QTreeWidget* header();
-        QTreeWidget* tree();
-        QVariant settingsValue(const QString& key, const QVariant& defaultValue = QVariant());
-        void setSettingsValue(const QString& key, const QVariant& value);
-        bool eventFilter(QObject* object, QEvent* event);
-        void enable(bool enable);
-        void profile();
-        void stylesheet();
+public:
+    SpecvizPrivate();
+    void init();
+    bool loadDataset(const QString& filename);
+    QCustomPlot* plot();
+    QTreeWidget* header();
+    QTreeWidget* tree();
+    QVariant settingsValue(const QString& key, const QVariant& defaultValue = QVariant());
+    void setSettingsValue(const QString& key, const QVariant& value);
+    bool eventFilter(QObject* object, QEvent* event);
+    void enable(bool enable);
+    void profile();
+    void stylesheet();
 
-    public Q_SLOTS:
-        void open();
-        void itemChanged(QTreeWidgetItem* item, int column);
-        void itemSelectionChanged();
-        void clear();
-        void openGithubReadme();
-        void openGithubIssues();
+public Q_SLOTS:
+    void open();
+    void itemChanged(QTreeWidgetItem* item, int column);
+    void itemSelectionChanged();
+    void clear();
+    void openGithubReadme();
+    void openGithubIssues();
 
-    public:
-        struct Data {
-            QStringList arguments;
-            QStringList extensions;
-            QList<SpecReader::Dataset> datasets;
-            QScopedPointer<Ui_Specviz> ui;
-            QPointer<Specviz> window;
-        };
-        Data d;
+public:
+    struct Data {
+        QStringList arguments;
+        QStringList extensions;
+        QList<SpecReader::Dataset> datasets;
+        QScopedPointer<Ui_Specviz> ui;
+        QPointer<Specviz> window;
+    };
+    Data d;
 };
 
 SpecvizPrivate::SpecvizPrivate() { d.extensions = { "json" }; }
@@ -73,29 +73,31 @@ SpecvizPrivate::init()
     d.ui.reset(new Ui_Specviz());
     d.ui->setupUi(d.window.data());
     // header
-    header()->setHeaderLabels(QStringList() << "Name" << "Value");
+    header()->setHeaderLabels(QStringList() << "Name"
+                                            << "Value");
     header()->setColumnWidth(0, 160);
     header()->setColumnWidth(1, 100);
     // tree
-    tree()->setHeaderLabels(QStringList() << "Dataset/ channel" << "Source");
-    tree()->setColumnWidth(0, 160); // name column
-    tree()->setColumnWidth(1, 100); // path column
+    tree()->setHeaderLabels(QStringList() << "Dataset/ channel"
+                                          << "Source");
+    tree()->setColumnWidth(0, 160);  // name column
+    tree()->setColumnWidth(1, 100);  // path column
     // connect
     connect(d.ui->fileOpen, &QAction::triggered, this, &SpecvizPrivate::open);
     connect(d.ui->treeWidget, &QTreeWidget::itemChanged, this, &SpecvizPrivate::itemChanged);
     connect(d.ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &SpecvizPrivate::itemSelectionChanged);
     // stylesheet
     stylesheet();
-    // debug
-    #ifdef QT_DEBUG
-        QMenu* menu = d.ui->menubar->addMenu("Debug");
-        {
-            QAction* action = new QAction("Reload stylesheet...", this);
-            action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_S));
-            menu->addAction(action);
-            connect(action, &QAction::triggered, [&]() { this->stylesheet(); });
-        }
-    #endif
+// debug
+#ifdef QT_DEBUG
+    QMenu* menu = d.ui->menubar->addMenu("Debug");
+    {
+        QAction* action = new QAction("Reload stylesheet...", this);
+        action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_S));
+        menu->addAction(action);
+        connect(action, &QAction::triggered, [&]() { this->stylesheet(); });
+    }
+#endif
 }
 
 bool
@@ -105,21 +107,21 @@ SpecvizPrivate::loadDataset(const QString& filename)
     if (!spec.isLoaded()) {
         return false;
     }
-    
+
     auto ds = spec.data();
     d.datasets.append(ds);
-    QTreeWidgetItem *treeItem = new QTreeWidgetItem(tree());
+    QTreeWidgetItem* treeItem = new QTreeWidgetItem(tree());
     treeItem->setText(0, ds.header.value("model").toString());
     treeItem->setText(1, QFileInfo(filename).fileName());
     treeItem->setCheckState(0, Qt::Checked);
-    treeItem->setData(0, Qt::UserRole, QVariant::fromValue(d.datasets.size()-1));
-    
+    treeItem->setData(0, Qt::UserRole, QVariant::fromValue(d.datasets.size() - 1));
+
     for (int i = 0; i < ds.indices.size(); ++i) {
         d.ui->plotWidget->addGraph();
         int graphIndex = d.ui->plotWidget->graphCount() - 1;
-        QCPGraph *graph = d.ui->plotWidget->graph(graphIndex);
+        QCPGraph* graph = d.ui->plotWidget->graph(graphIndex);
         graph->setName(ds.indices[i]);
-        
+
         QString idx = ds.indices[i].toUpper();
         if (idx == "R") {
             graph->setPen(QPen(Qt::red, 2));
@@ -139,8 +141,8 @@ SpecvizPrivate::loadDataset(const QString& filename)
         y.reserve(ds.data.size());
 
         for (auto it = ds.data.begin(); it != ds.data.end(); ++it) {
-            x << it.key();               // wavelength
-            if (i < it.value().size()) { // channel safety
+            x << it.key();                // wavelength
+            if (i < it.value().size()) {  // channel safety
                 y << it.value().at(i);
             }
             else {
@@ -148,7 +150,7 @@ SpecvizPrivate::loadDataset(const QString& filename)
             }
         }
         graph->setData(x, y);
-        QTreeWidgetItem *child = new QTreeWidgetItem(treeItem);
+        QTreeWidgetItem* child = new QTreeWidgetItem(treeItem);
         child->setText(0, ds.indices[i]);
         child->setCheckState(0, Qt::Checked);
         child->setData(0, Qt::UserRole, graphIndex);
@@ -156,7 +158,7 @@ SpecvizPrivate::loadDataset(const QString& filename)
     }
     tree()->expandItem(treeItem);
     tree()->setCurrentItem(treeItem);
-    
+
     return true;
 }
 
@@ -198,8 +200,7 @@ SpecvizPrivate::eventFilter(QObject* object, QEvent* event)
 
 void
 SpecvizPrivate::enable(bool enable)
-{
-}
+{}
 
 void
 SpecvizPrivate::profile()
@@ -273,15 +274,16 @@ SpecvizPrivate::open()
 }
 
 void
-SpecvizPrivate::itemChanged(QTreeWidgetItem *item, int column)
+SpecvizPrivate::itemChanged(QTreeWidgetItem* item, int column)
 {
     if (!item->parent()) {
         Qt::CheckState rootState = item->checkState(0);
         for (int i = 0; i < item->childCount(); ++i) {
-            QTreeWidgetItem *child = item->child(i);
+            QTreeWidgetItem* child = item->child(i);
             child->setCheckState(0, rootState);
         }
-    } else {
+    }
+    else {
         bool visible = (item->checkState(0) == Qt::Checked);
         int graphIndex = item->data(0, Qt::UserRole).toInt();
         if (graphIndex >= 0 && graphIndex < d.ui->plotWidget->graphCount()) {
@@ -303,19 +305,19 @@ SpecvizPrivate::itemSelectionChanged()
     const auto& ds = d.datasets[datasetIndex];
 
     header()->clear();
-    QTreeWidgetItem *headerItem = new QTreeWidgetItem(header());
+    QTreeWidgetItem* headerItem = new QTreeWidgetItem(header());
     headerItem->setText(0, "header");
     headerItem->setFlags(headerItem->flags() & ~Qt::ItemIsUserCheckable);
-    
+
     for (auto it = ds.header.constBegin(); it != ds.header.constEnd(); ++it) {
-        QTreeWidgetItem *meta = new QTreeWidgetItem(headerItem);
+        QTreeWidgetItem* meta = new QTreeWidgetItem(headerItem);
         meta->setText(0, it.key());
         meta->setText(1, it.value().toString());
         meta->setFlags(meta->flags() & ~Qt::ItemIsUserCheckable);
     }
-    
+
     header()->expandItem(headerItem);
-    
+
     d.ui->plotWidget->legend->setVisible(true);
     d.ui->plotWidget->xAxis->setLabel("Wavelength (nm)");
     d.ui->plotWidget->yAxis->setLabel("Relative Sensitivity");
@@ -325,8 +327,7 @@ SpecvizPrivate::itemSelectionChanged()
 
 void
 SpecvizPrivate::clear()
-{
-}
+{}
 
 void
 SpecvizPrivate::openGithubReadme()

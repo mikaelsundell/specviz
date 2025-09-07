@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <QVariantMap>
+#include <QMap>
 #include <QString>
 #include <QStringList>
-#include <QMap>
+#include <QVariantMap>
 #include <QVector>
 
 class SpecReader {
@@ -23,4 +23,3 @@ public:
     virtual Dataset read(const QString& fileName) = 0;
     virtual QStringList extensions() = 0;
 };
-

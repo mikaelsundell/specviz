@@ -4,13 +4,15 @@
 
 #include "ampasreader.h"
 
+#include <QDebug>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QDebug>
 
-SpecReader::Dataset AmpasReader::read(const QString& fileName) {
+SpecReader::Dataset
+AmpasReader::read(const QString& fileName)
+{
     Dataset dataset;
     dataset.loaded = false;
 

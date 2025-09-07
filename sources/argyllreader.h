@@ -7,9 +7,7 @@
 #include "specreader.h"
 
 class ArgyllReader : public SpecReader {
-    public:
-        Dataset read(const QString& fileName) override;
-        QStringList extensions() override {
-            return {"ti3", "cgats", "agryll"};
-        }
+public:
+    Dataset read(const QString& fileName) override;
+    QStringList extensions() override { return { "ti3", "cgats", "agryll" }; }
 };

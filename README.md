@@ -6,6 +6,8 @@ Specviz
 Introduction
 ------------
 
+<img src="resources/Specviz.jpg" style="padding-bottom: 20px;" />
+
 This project is an experimental exploration of spectral data visualization and interaction using C++ and Qt, serving as a lightweight alternative to existing scientific plotting tools. It acts as a testbed for parsing and analyzing spectral data files, with a focus on clear comparison, intuitive plotting, and interactive exploration.
 
 

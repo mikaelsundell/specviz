@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <QObject>
 #include <QColor>
-#include <QScopedPointer>
 #include <QHash>
+#include <QObject>
+#include <QScopedPointer>
 
 class StylesheetPrivate;
 class Stylesheet : public QObject {
@@ -31,7 +31,7 @@ public:
     void applyQss(const QString& qss);
     bool loadQss(const QString& path);
     QString compiled() const;
-    
+
 
     void setColor(ColorRole role, const QColor& color);
     QColor color(ColorRole role) const;

@@ -1,11 +1,11 @@
 #include "stylesheet.h"
 #include "icctransform.h"
+#include <QApplication>
 #include <QFile>
+#include <QMetaEnum>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QRegularExpression>
-#include <QApplication>
-#include <QMetaEnum>
 
 QScopedPointer<Stylesheet, Stylesheet::Deleter> Stylesheet::pi;
 
@@ -37,7 +37,7 @@ Stylesheet::Stylesheet()
     map(Accent, QColor::fromHsl(220, 6, 20));
     map(AccentAlt, QColor::fromHsl(220, 6, 24));
     map(Text, QColor::fromHsl(0, 0, 180));
-    map(TextDisabled,  QColor::fromHsl(0, 0, 40));
+    map(TextDisabled, QColor::fromHsl(0, 0, 40));
     map(Highlight, QColor::fromHsl(216, 82, 40));
     map(Border, QColor::fromHsl(220, 3, 33));
     map(Scrollbar, QColor::fromHsl(0, 0, 70));
@@ -46,7 +46,9 @@ Stylesheet::Stylesheet()
 
 Stylesheet::~Stylesheet() {}
 
-QString Stylesheet::roleName(ColorRole role) const {
+QString
+Stylesheet::roleName(ColorRole role) const
+{
     const QMetaEnum me = QMetaEnum::fromType<ColorRole>();
     return QString::fromLatin1(me.valueToKey(role)).toLower();
 }
@@ -82,22 +84,26 @@ Stylesheet::loadQss(const QString& path)
     return true;
 }
 
-QString Stylesheet::compiled() const
+QString
+Stylesheet::compiled() const
 {
     return p->compiled;
 }
 
-void Stylesheet::setColor(ColorRole role, const QColor& color)
+void
+Stylesheet::setColor(ColorRole role, const QColor& color)
 {
     p->palette[roleName(role)] = color;
 }
 
-QColor Stylesheet::color(ColorRole role) const
+QColor
+Stylesheet::color(ColorRole role) const
 {
     return p->palette.value(roleName(role), QColor());
 }
 
-Stylesheet* Stylesheet::instance()
+Stylesheet*
+Stylesheet::instance()
 {
     static QMutex mutex;
     QMutexLocker locker(&mutex);

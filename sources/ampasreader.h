@@ -7,9 +7,7 @@
 #include "specreader.h"
 
 class AmpasReader : public SpecReader {
-    public:
-        Dataset read(const QString& fileName) override;
-        QStringList extensions() override {
-            return {"json"};
-        }
+public:
+    Dataset read(const QString& fileName) override;
+    QStringList extensions() override { return { "json" }; }
 };

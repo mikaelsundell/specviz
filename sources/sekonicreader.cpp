@@ -4,13 +4,15 @@
 
 #include "sekonicreader.h"
 
+#include <QDebug>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QDebug>
 
-SpecReader::Dataset SekonicReader::read(const QString& fileName) {
+SpecReader::Dataset
+SekonicReader::read(const QString& fileName)
+{
     Dataset dataset;
     dataset.loaded = false;
     return dataset;

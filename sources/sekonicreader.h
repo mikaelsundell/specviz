@@ -7,9 +7,7 @@
 #include "specreader.h"
 
 class SekonicReader : public SpecReader {
-    public:
-        Dataset read(const QString& fileName) override;
-        QStringList extensions() override {
-            return {"csv", "txt"};
-        }
+public:
+    Dataset read(const QString& fileName) override;
+    QStringList extensions() override { return { "csv", "txt" }; }
 };
