@@ -14,14 +14,32 @@ class StylesheetPrivate : public QObject {
 public:
     StylesheetPrivate();
     ~StylesheetPrivate();
+    QString roleName(Stylesheet::ColorRole role) const;
+    QString roleName(Stylesheet::FontRole role) const;
 
     QString path;
     QString compiled;
     QHash<QString, QColor> palette;
+    QHash<QString, int> fonts;
 };
 
 StylesheetPrivate::StylesheetPrivate() {}
 StylesheetPrivate::~StylesheetPrivate() {}
+
+QString
+StylesheetPrivate::roleName(Stylesheet::ColorRole role) const
+{
+    const QMetaEnum me = QMetaEnum::fromType<Stylesheet::ColorRole>();
+    return QString::fromLatin1(me.valueToKey(role)).toLower();
+}
+
+QString
+StylesheetPrivate::roleName(Stylesheet::FontRole role) const
+{
+    const QMetaEnum me = QMetaEnum::fromType<Stylesheet::FontRole>();
+    return QString::fromLatin1(me.valueToKey(role)).toLower();
+}
+
 #include "stylesheet.moc"
 
 Stylesheet::Stylesheet()
@@ -42,16 +60,13 @@ Stylesheet::Stylesheet()
     map(Border, QColor::fromHsl(220, 3, 33));
     map(Scrollbar, QColor::fromHsl(0, 0, 70));
     map(Progress, QColor::fromHsl(216, 82, 20));
+
+    setFontSize(DefaultSize, 11);
+    setFontSize(SmallSize, 9);
+    setFontSize(LargeSize, 14);
 }
 
 Stylesheet::~Stylesheet() {}
-
-QString
-Stylesheet::roleName(ColorRole role) const
-{
-    const QMetaEnum me = QMetaEnum::fromType<ColorRole>();
-    return QString::fromLatin1(me.valueToKey(role)).toLower();
-}
 
 void
 Stylesheet::applyQss(const QString& qss)
@@ -69,7 +84,6 @@ Stylesheet::loadQss(const QString& path)
     p->path = path;
     QString output = QString::fromUtf8(file.readAll());
 
-    // replace $role placeholders
     for (auto it = p->palette.constBegin(); it != p->palette.constEnd(); ++it) {
         QString placeholder = "$" + it.key();
         QColor color = it.value();
@@ -78,6 +92,11 @@ Stylesheet::loadQss(const QString& path)
                           .arg(static_cast<int>(color.hslSaturationF() * 100))
                           .arg(static_cast<int>(color.lightnessF() * 100));
         output.replace(placeholder, hsl, Qt::CaseInsensitive);
+    }
+
+    for (auto it = p->fonts.constBegin(); it != p->fonts.constEnd(); ++it) {
+        QString placeholder = "$" + it.key();
+        output.replace(placeholder, QString::number(it.value()) + "px", Qt::CaseInsensitive);
     }
 
     p->compiled = output;
@@ -93,13 +112,25 @@ Stylesheet::compiled() const
 void
 Stylesheet::setColor(ColorRole role, const QColor& color)
 {
-    p->palette[roleName(role)] = color;
+    p->palette[p->roleName(role)] = color;
 }
 
 QColor
 Stylesheet::color(ColorRole role) const
 {
-    return p->palette.value(roleName(role), QColor());
+    return p->palette.value(p->roleName(role), QColor());
+}
+
+void
+Stylesheet::setFontSize(FontRole role, int size)
+{
+    p->fonts[p->roleName(role)] = size;
+}
+
+int
+Stylesheet::fontSize(FontRole role) const
+{
+    return p->fonts.value(p->roleName(role), -1);
 }
 
 Stylesheet*

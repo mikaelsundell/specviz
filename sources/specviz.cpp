@@ -28,6 +28,7 @@ class SpecvizPrivate : public QObject {
 public:
     SpecvizPrivate();
     void init();
+    void initPlot();
     bool loadDataset(const QString& filename);
     QCustomPlot* plot();
     QTreeWidget* header();
@@ -72,16 +73,19 @@ SpecvizPrivate::init()
     profile();
     d.ui.reset(new Ui_Specviz());
     d.ui->setupUi(d.window.data());
+    initPlot();
+    // tree
+    tree()->setHeaderLabels(QStringList() << "Dataset"
+                                          << "Display"
+                                          << "Source");
+    tree()->setColumnWidth(0, 160);
+    tree()->setColumnWidth(1, 100);
+    tree()->header()->setSectionResizeMode(2, QHeaderView::Stretch);
     // header
     header()->setHeaderLabels(QStringList() << "Name"
                                             << "Value");
     header()->setColumnWidth(0, 160);
-    header()->setColumnWidth(1, 100);
-    // tree
-    tree()->setHeaderLabels(QStringList() << "Dataset/ channel"
-                                          << "Source");
-    tree()->setColumnWidth(0, 160);  // name column
-    tree()->setColumnWidth(1, 100);  // path column
+    header()->header()->setSectionResizeMode(1, QHeaderView::Stretch);
     // connect
     connect(d.ui->fileOpen, &QAction::triggered, this, &SpecvizPrivate::open);
     connect(d.ui->treeWidget, &QTreeWidget::itemChanged, this, &SpecvizPrivate::itemChanged);
@@ -100,6 +104,31 @@ SpecvizPrivate::init()
 #endif
 }
 
+void
+SpecvizPrivate::initPlot()
+{
+    QCPItemRect *gradientRect = new QCPItemRect(d.ui->plotWidget);
+    gradientRect->topLeft->setType(QCPItemPosition::ptPlotCoords);
+    gradientRect->bottomRight->setType(QCPItemPosition::ptPlotCoords);
+    gradientRect->topLeft->setCoords(380, 0);
+    gradientRect->bottomRight->setCoords(780, 0.01);
+
+    QLinearGradient grad(0, 0, 1, 0);
+    grad.setCoordinateMode(QGradient::ObjectBoundingMode);
+
+    // approximate spectral hues
+    grad.setColorAt(0.0, QColor::fromHslF(0.72, 1.0, 0.5));
+    grad.setColorAt(0.15, QColor::fromHslF(0.66, 1.0, 0.5));
+    grad.setColorAt(0.3, QColor::fromHslF(0.5, 1.0, 0.5));
+    grad.setColorAt(0.55, QColor::fromHslF(0.17, 1.0, 0.5));
+    grad.setColorAt(0.75, QColor::fromHslF(0.0, 1.0, 0.5));
+    grad.setColorAt(1.0, QColor::fromHslF(0.0, 1.0, 0.2));
+
+    gradientRect->setBrush(QBrush(grad));
+    gradientRect->setPen(Qt::NoPen);
+}
+
+
 bool
 SpecvizPrivate::loadDataset(const QString& filename)
 {
@@ -112,9 +141,16 @@ SpecvizPrivate::loadDataset(const QString& filename)
     d.datasets.append(ds);
     QTreeWidgetItem* treeItem = new QTreeWidgetItem(tree());
     treeItem->setText(0, ds.header.value("model").toString());
-    treeItem->setText(1, QFileInfo(filename).fileName());
+    
+    QComboBox *combo = new QComboBox(tree());
+    combo->addItems({"Solid", "Dash", "Dot", "Dash dot", "Dash dot dot"});
+    tree()->setItemWidget(treeItem, 1, combo);
+    
+    treeItem->setText(2, QFileInfo(filename).fileName());
     treeItem->setCheckState(0, Qt::Checked);
     treeItem->setData(0, Qt::UserRole, QVariant::fromValue(d.datasets.size() - 1));
+
+    QVector<int> graphIndices;
 
     for (int i = 0; i < ds.indices.size(); ++i) {
         d.ui->plotWidget->addGraph();
@@ -122,42 +158,52 @@ SpecvizPrivate::loadDataset(const QString& filename)
         QCPGraph* graph = d.ui->plotWidget->graph(graphIndex);
         graph->setName(ds.indices[i]);
 
+        // default colors
         QString idx = ds.indices[i].toUpper();
-        if (idx == "R") {
-            graph->setPen(QPen(Qt::red, 2));
-        }
-        else if (idx == "G") {
-            graph->setPen(QPen(Qt::green, 2));
-        }
-        else if (idx == "B") {
-            graph->setPen(QPen(Qt::blue, 2));
-        }
-        else {
-            graph->setPen(QPen(QColor::fromHslF((i * 0.15), 0.7, 0.5), 2));
-        }
+        if (idx == "R")      graph->setPen(QPen(Qt::red, 2));
+        else if (idx == "G") graph->setPen(QPen(Qt::green, 2));
+        else if (idx == "B") graph->setPen(QPen(Qt::blue, 2));
+        else                 graph->setPen(QPen(QColor::fromHslF((i * 0.15), 0.7, 0.5), 2));
 
+        // set graph data
         QVector<double> x, y;
         x.reserve(ds.data.size());
         y.reserve(ds.data.size());
-
         for (auto it = ds.data.begin(); it != ds.data.end(); ++it) {
-            x << it.key();                // wavelength
-            if (i < it.value().size()) {  // channel safety
-                y << it.value().at(i);
-            }
-            else {
-                y << 0.0;
-            }
+            x << it.key();
+            y << (i < it.value().size() ? it.value().at(i) : 0.0);
         }
         graph->setData(x, y);
+
+        // child tree item
         QTreeWidgetItem* child = new QTreeWidgetItem(treeItem);
         child->setText(0, ds.indices[i]);
         child->setCheckState(0, Qt::Checked);
         child->setData(0, Qt::UserRole, graphIndex);
         d.ui->plotWidget->graph(graphIndex)->setVisible(true);
+
+        graphIndices << graphIndex;
     }
     tree()->expandItem(treeItem);
     tree()->setCurrentItem(treeItem);
+    
+    connect(combo, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+        [=](int index) {
+            Qt::PenStyle style = Qt::SolidLine;
+            switch (index) {
+                case 1: style = Qt::DashLine; break;
+                case 2: style = Qt::DotLine; break;
+                case 3: style = Qt::DashDotLine; break;
+                case 4: style = Qt::DashDotDotLine; break;
+                default: style = Qt::SolidLine; break;
+            }
+            for (int gi : graphIndices) {
+                QPen pen = d.ui->plotWidget->graph(gi)->pen();
+                pen.setStyle(style);
+                d.ui->plotWidget->graph(gi)->setPen(pen);
+            }
+            d.ui->plotWidget->replot();
+        });
 
     return true;
 }
@@ -218,6 +264,7 @@ SpecvizPrivate::stylesheet()
     auto ss = Stylesheet::instance();
     if (ss->loadQss(path)) {
         ss->applyQss(ss->compiled());
+        qDebug() << ss->compiled();
     }
     // qcustomplot
     QColor base = ss->color(Stylesheet::Base);

@@ -121,7 +121,7 @@
   <widget class="DockWidget" name="dockWidget_2">
    <property name="minimumSize">
     <size>
-     <width>300</width>
+     <width>400</width>
      <height>469</height>
     </size>
    </property>

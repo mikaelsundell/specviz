@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
       <file>../resources/Checkbox.png</file>
+      <file>../resources/Dropdown.png</file>
   </qresource>
 </RCC>
