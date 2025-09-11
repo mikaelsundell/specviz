@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "specreader.h"
+#include "specfile.h"
 
-class AmpasReader : public SpecReader {
+class AmpasFile : public SpecFile {
 public:
     Dataset read(const QString& fileName) override;
+    bool write(const Dataset& dataset, const QString& fileName) override;
     QStringList extensions() override { return { "json" }; }
 };

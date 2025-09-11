@@ -17,10 +17,27 @@ QMainWindow::separator {
     width: 6px;
 }
 
+QCheckBox {
+    color: $text;
+    font-size: $defaultsize;
+    spacing: 8px;
+    padding-right: 10px;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    background-color: $base;
+    border: 1px solid $border;
+}
+
+QCheckBox::indicator:checked {
+    image: url(":/icons/resources/Checkbox.png");
+}
+
 QComboBox {
     color: $text;
     font-size: $defaultsize;
-    height: 30px;
     padding-left: 10px;
     padding-right: 10px;
     padding-bottom: 2px;
@@ -51,7 +68,7 @@ QComboBox::drop-down {
 QComboBox::item {
     color: $text;
     height: 10px;
-    background-color: $base;
+    background-color: $basealt;
     border: 8px solid transparent;
 }
 
@@ -59,10 +76,56 @@ QComboBox::item:selected {
     background: $highlight;
 }
 
+QLabel
+{
+    font-size: $defaultsize;
+    color: $text;
+}
+
+QPushButton
+{
+    color: $text;
+    font-size: $defaultsize;
+    background-color: 
+    QLinearGradient( 
+        x1: 0, y1: 0, x2: 0, y2: 1, 
+        stop: 0 $button,
+        stop: 1.0 $buttonalt
+    );
+    height: 20px;  
+    min-width: 50px;      
+    border: 1px solid $borderalt;
+    border-radius: 0px;        
+    padding: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+QPushButton:default
+{
+    font-weight: bold;
+}
+
+QPushButton:disabled
+{
+    color: $textdisabled;
+}
+
+QPushButton:pressed
+{
+    background-color: 
+    QLinearGradient( 
+        x1: 0, y1: 0, x2: 0, y2: 1, 
+        stop: 0 $button.lightness(120),
+        stop: 1.0 $buttonalt.lightness(120)
+    );
+}
+
 QTreeView
 {
     font-size: $defaultsize;
     color: $text;
+    background-color: $basealt;
     selection-background-color: $highlight;
     alternate-background-color: $base;
 }
@@ -86,5 +149,6 @@ QTreeView::indicator:checked {
 }
 
 QTreeView::item {
+    height: 26px;
     padding: 4px;
 }

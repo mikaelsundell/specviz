@@ -44,9 +44,54 @@
     </property>
     <item>
      <widget class="QCustomPlot" name="plotWidget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="styleSheet">
        <string notr="true"/>
       </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="dataWidget" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QCheckBox" name="trace">
+         <property name="text">
+          <string>Trace</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="dataset">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>
@@ -60,44 +105,19 @@
      <height>24</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuDisplay">
-    <property name="title">
-     <string>Display</string>
-    </property>
-    <widget class="QMenu" name="menuComplexity">
-     <property name="title">
-      <string>Complexity</string>
-     </property>
-     <addaction name="asComplexityLow"/>
-     <addaction name="asComplexityMedium"/>
-     <addaction name="asComplexityHigh"/>
-     <addaction name="asComplexityVeryHigh"/>
-    </widget>
-    <addaction name="menuComplexity"/>
-    <addaction name="separator"/>
-    <addaction name="displayFrameAll"/>
-    <addaction name="displayFrameSelected"/>
-    <addaction name="displayResetView"/>
-    <addaction name="separator"/>
-    <addaction name="displayExpand"/>
-    <addaction name="displayCollapse"/>
-   </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
     <addaction name="fileOpen"/>
     <addaction name="separator"/>
-    <addaction name="fileExportAll"/>
     <addaction name="fileExportSelected"/>
-    <addaction name="separator"/>
-    <addaction name="fileExportImage"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionAbout"/>
+    <addaction name="helpAbout"/>
     <addaction name="helpGithubReadme"/>
     <addaction name="helpGithubIssues"/>
    </widget>
@@ -107,14 +127,10 @@
     </property>
     <addaction name="editCopyImage"/>
     <addaction name="separator"/>
-    <addaction name="editShow"/>
-    <addaction name="editHide"/>
-    <addaction name="separator"/>
-    <addaction name="editDelete"/>
+    <addaction name="editClear"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuDisplay"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -187,7 +203,7 @@
             </font>
            </property>
            <property name="selectionMode">
-            <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+            <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
            </property>
            <column>
             <property name="text">
@@ -285,7 +301,7 @@
     <string>Open Github Issues</string>
    </property>
   </action>
-  <action name="actionAbout">
+  <action name="helpAbout">
    <property name="text">
     <string>About</string>
    </property>
@@ -372,9 +388,9 @@
     <string>H</string>
    </property>
   </action>
-  <action name="editDelete">
+  <action name="editClear">
    <property name="text">
-    <string>Delete</string>
+    <string>Clear</string>
    </property>
    <property name="shortcut">
     <string>Del</string>

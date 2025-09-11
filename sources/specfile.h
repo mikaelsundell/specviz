@@ -4,40 +4,24 @@
 
 #pragma once
 
-#include "ampasreader.h"
-#include "argyllreader.h"
-#include "sekonicreader.h"
-#include "specreader.h"
-
-#include <QFileInfo>
-#include <memory>
+#include <QMap>
+#include <QString>
+#include <QStringList>
+#include <QVariantMap>
+#include <QVector>
 
 class SpecFile {
 public:
-    explicit SpecFile(const QString& fileName)
-    {
-        QString ext = QFileInfo(fileName).suffix().toLower();
-        for (auto& factory : availableReaders()) {
-            std::unique_ptr<SpecReader> candidate(factory());
-            if (candidate) {
-                if (candidate->extensions().contains(ext)) {
-                    reader = std::move(candidate);
-                    dataset = reader->read(fileName);
-                    break;
-                }
-            }
-        }
-    }
-    const SpecReader::Dataset& data() const { return dataset; }
-    bool isLoaded() const { return dataset.loaded; }
-
-private:
-    using ReaderFactory = std::function<SpecReader*()>;
-    static QList<ReaderFactory> availableReaders()
-    {
-        return { []() { return new AmpasReader(); }, []() { return new ArgyllReader(); },
-                 []() { return new SekonicReader(); } };
-    }
-    std::unique_ptr<SpecReader> reader;
-    SpecReader::Dataset dataset;
+    struct Dataset {
+        QString name;
+        QVariantMap header;               // flexible header
+        QString units;                    // e.g. "relative"
+        QStringList indices;              // e.g. ["R","G","B"]
+        QMap<int, QVector<double>> data;  // wavelength -> [values]
+        bool loaded;
+    };
+    virtual ~SpecFile() = default;
+    virtual Dataset read(const QString& fileName) = 0;
+    virtual bool write(const Dataset& dataset, const QString& fileName) = 0;
+    virtual QStringList extensions() = 0;
 };

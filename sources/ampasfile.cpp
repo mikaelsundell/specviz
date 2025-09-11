@@ -2,7 +2,7 @@
 // Copyright (c) 2025 - present Mikael Sundell
 // https://github.com/mikaelsundell/specviz
 
-#include "ampasreader.h"
+#include "ampasfile.h"
 
 #include <QDebug>
 #include <QFile>
@@ -10,15 +10,15 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-SpecReader::Dataset
-AmpasReader::read(const QString& fileName)
+SpecFile::Dataset
+AmpasFile::read(const QString& fileName)
 {
     Dataset dataset;
     dataset.loaded = false;
 
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "AmpasReader: cannot open file:" << fileName;
+        qWarning() << "AmpasFile: cannot open file:" << fileName;
         return dataset;
     }
 
@@ -26,7 +26,7 @@ AmpasReader::read(const QString& fileName)
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(rawData, &parseError);
     if (doc.isNull() || !doc.isObject()) {
-        qWarning() << "AmpasReader: JSON parse error:" << parseError.errorString();
+        qWarning() << "AmpasFile: JSON parse error:" << parseError.errorString();
         return dataset;
     }
 
@@ -58,7 +58,7 @@ AmpasReader::read(const QString& fileName)
                     bool ok = false;
                     int wavelength = it.key().toInt(&ok);
                     if (!ok) {
-                        qWarning() << "AmpasReader: invalid wavelength key:" << it.key();
+                        qWarning() << "AmpasFile: invalid wavelength key:" << it.key();
                         continue;
                     }
 
@@ -74,6 +74,56 @@ AmpasReader::read(const QString& fileName)
             }
         }
     }
+    if (dataset.header.contains("model")) {
+        dataset.name = dataset.header.value("model").toString();
+    }
+    else {
+        dataset.name = "Ampas spectral sensitivity data";
+    }
     dataset.loaded = true;
     return dataset;
+}
+
+bool
+AmpasFile::write(const Dataset& dataset, const QString& fileName)
+{
+    QJsonObject root;
+
+    QJsonObject headerObj = QJsonObject::fromVariantMap(dataset.header);
+    root["header"] = headerObj;
+
+    QJsonObject spectralObj;
+    spectralObj["units"] = dataset.units;
+
+    QJsonObject indexObj;
+    QJsonArray mainIndex;
+    for (const QString& idx : dataset.indices) {
+        mainIndex.append(idx);
+    }
+    indexObj["main"] = mainIndex;
+    spectralObj["index"] = indexObj;
+
+    QJsonObject dataObj;
+    QJsonObject mainData;
+    for (auto it = dataset.data.constBegin(); it != dataset.data.constEnd(); ++it) {
+        QJsonArray valueArray;
+        for (double v : it.value()) {
+            valueArray.append(v);
+        }
+        mainData[QString::number(it.key())] = valueArray;
+    }
+    dataObj["main"] = mainData;
+    spectralObj["data"] = dataObj;
+
+    root["spectral_data"] = spectralObj;
+
+    QJsonDocument doc(root);
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "AmpasFile: cannot write file:" << fileName;
+        return false;
+    }
+    file.write(doc.toJson(QJsonDocument::Indented));
+    file.close();
+    return true;
 }

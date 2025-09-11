@@ -1,11 +1,10 @@
-3rdparty libraries acknowledgment and copyright notice:
+Qt Toolkit
+Copyright (C) 2025 The Qt Company Ltd. and/or its subsidiary(-ies).
+Qt is licensed under the GNU Lesser General Public License (LGPL) version 3.
+For details, see https://www.qt.io/licensing/ and https://doc.qt.io/qt-6/lgpl.html
 
-This product includes software developed by third parties. The copyrights and terms of use of these third-party libraries are fully acknowledged and respected. Below is a list of said libraries and their respective copyright notices:
-
-QCustomPlot Copyright (C) 2011-2022 Emanuel Eichhammer      
-
-The Qt Company Ltd.: Copyright (C) 2016 by The Qt Company Ltd. All rights reserved.
-
-sRGB color profile icc file, Copyright International Color Consortium, 2015
-
-The use of the above-mentioned software within this product is in compliance with the respective licenses and/or terms and conditions of the copyright holders. The inclusion of these third-party libraries does not imply any endorsement by the copyright holders of the products developed using their software.
+QCustomPlot
+Copyright (C) 2011-2025 Emanuel Eichhammer
+QCustomPlot is licensed under the GNU General Public License (GPL) version 3
+or a commercial license.
+For details, see https://www.qcustomplot.com/

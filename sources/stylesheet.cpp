@@ -50,6 +50,7 @@ Stylesheet::Stylesheet()
         QColor mapped = transform->map(c.rgb());
         setColor(role, mapped);
     };
+
     map(Base, QColor::fromHsl(220, 76, 6));
     map(BaseAlt, QColor::fromHsl(220, 30, 12));
     map(Accent, QColor::fromHsl(220, 6, 20));
@@ -57,9 +58,12 @@ Stylesheet::Stylesheet()
     map(Text, QColor::fromHsl(0, 0, 180));
     map(TextDisabled, QColor::fromHsl(0, 0, 40));
     map(Highlight, QColor::fromHsl(216, 82, 40));
-    map(Border, QColor::fromHsl(220, 3, 33));
+    map(Border, QColor::fromHsl(220, 3, 32));
+    map(BorderAlt, QColor::fromHsl(220, 3, 64));
     map(Scrollbar, QColor::fromHsl(0, 0, 70));
     map(Progress, QColor::fromHsl(216, 82, 20));
+    map(Button, QColor::fromHsl(220, 6, 40));
+    map(ButtonAlt, QColor::fromHsl(220, 6, 54));
 
     setFontSize(DefaultSize, 11);
     setFontSize(SmallSize, 9);
@@ -84,22 +88,56 @@ Stylesheet::loadQss(const QString& path)
     p->path = path;
     QString output = QString::fromUtf8(file.readAll());
 
-    for (auto it = p->palette.constBegin(); it != p->palette.constEnd(); ++it) {
-        QString placeholder = "$" + it.key();
-        QColor color = it.value();
-        QString hsl = QString("hsl(%1, %2%, %3%)")
-                          .arg(color.hue() == -1 ? 0 : color.hue())
-                          .arg(static_cast<int>(color.hslSaturationF() * 100))
-                          .arg(static_cast<int>(color.lightnessF() * 100));
-        output.replace(placeholder, hsl, Qt::CaseInsensitive);
+    QRegularExpression regex(R"(\$([a-z0-9]+)(?:\.(lightness|saturation)\((\d+)\))?)",
+                             QRegularExpression::CaseInsensitiveOption);
+
+    QString result;
+    qsizetype lastIndex = 0;
+    QRegularExpressionMatchIterator it = regex.globalMatch(output);
+
+    while (it.hasNext()) {
+        QRegularExpressionMatch match = it.next();
+        result.append(output.mid(lastIndex, match.capturedStart() - lastIndex));
+
+        QString roleName = match.captured(1).toLower();
+        QString modifier = match.captured(2).toLower();
+        int factor = match.captured(3).isEmpty() ? 100 : match.captured(3).toInt();
+
+        QColor color = p->palette.value(roleName, QColor());
+        if (!color.isValid()) {
+            result.append(match.captured(0));
+        }
+        else {
+            QColor mapped = color;
+
+            if (modifier == "lightness") {
+                mapped = mapped.lighter(factor);
+            }
+            else if (modifier == "saturation") {
+                float h, s, l, a;
+                mapped.getHslF(&h, &s, &l, &a);
+                s = std::clamp(s * factor / 100.0, 0.0, 1.0);
+                mapped.setHslF(h, s, l, a);
+            }
+
+            QString hsl = QString("hsl(%1, %2%, %3%)")
+                              .arg(mapped.hue() == -1 ? 0 : mapped.hue())
+                              .arg(int(mapped.hslSaturationF() * 100))
+                              .arg(int(mapped.lightnessF() * 100));
+            result.append(hsl);
+        }
+
+        lastIndex = match.capturedEnd();
     }
+    result.append(output.mid(lastIndex));
 
     for (auto it = p->fonts.constBegin(); it != p->fonts.constEnd(); ++it) {
         QString placeholder = "$" + it.key();
-        output.replace(placeholder, QString::number(it.value()) + "px", Qt::CaseInsensitive);
+        QString replacement = QString::number(it.value()) + "px";
+        result.replace(placeholder, replacement, Qt::CaseInsensitive);
     }
 
-    p->compiled = output;
+    p->compiled = result;
     return true;
 }
 

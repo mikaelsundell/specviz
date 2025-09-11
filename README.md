@@ -26,6 +26,20 @@ todo: insert application image here with example spd curves
 
 todo: insert application functionality here
 
+
+
+Spectra readings with Argyll and Calibrate x-rite device
+
+dispread
+./spotread -e
+
+
+Click the calibration
+
+
+
+
+
 References
 -------------
 

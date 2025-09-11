@@ -41,7 +41,7 @@ source_group ("Resource Files" FILES ${project_resources})
 
 set (project_copyright "Copyright 2025-present Contributors to the ${project_name} project")
 set (project_identifier "com.github.mikaelsundell.${project_name}")
-set (project_long_version "1.0.00")
+set (project_long_version "1.0.1")
 set (project_short_version "1.0")
 set (project_url "https://github.com/mikaelsundell/specviz")
 
@@ -116,7 +116,7 @@ endif ()
 
 target_compile_definitions (${project_name} PRIVATE
     -DPROJECT_NAME="${project_name}"
-    -DPROJECT_VERSION="${project_version}"
+    -DPROJECT_VERSION="${project_long_version}"
     -DPROJECT_COPYRIGHT="${project_copyright}"
     -DPROJECT_IDENTIFIER="${project_identifier}"
     -DGITHUB_URL="${project_url}"
