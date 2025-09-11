@@ -102,7 +102,7 @@ function deploy_dmg() {
 <plist version="1.0">
 <dict>
     <key>URL</key>
-    <string>https://github.com/mikaelsundell/colorpicker</string>
+    <string>https://github.com/mikaelsundell/specviz</string>
 </dict>
 </plist>
 EOL

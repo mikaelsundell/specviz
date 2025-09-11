@@ -13,7 +13,7 @@
   <property name="minimumSize">
    <size>
     <width>800</width>
-    <height>400</height>
+    <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -276,6 +276,9 @@
    </property>
   </action>
   <action name="fileExportSelected">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Export selected ...</string>
    </property>

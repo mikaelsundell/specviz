@@ -109,11 +109,10 @@ Both **reflective** and **ambient** measurements were taken to capture material 
 | 2025-09-11 | [argyll_refl_yellowpostit.sp](data/argyll_refl_yellowpostit.sp) | Reflective | Yellow Post-it note                     |
 
 
-
-
-**Tip**:  
-- Ambient (`_amb_`) captures **illuminant spectra**.  
-- Reflective (`_refl_`) captures **sample reflectance curves**.  
+**Notice**  
+- Ambient files (`_amb_`) represent **illuminant spectra**.  
+- Reflective files (`_refl_`) represent **sample reflectance curves**.  
+- Measurements below ~420 nm (e.g. 380–410 nm) often appear **flat-lined** due to limited instrument sensitivity in the near-UV range.
 
 These datasets can be loaded directly into **Specviz** to visualize and compare the spectral responses.
 
