@@ -15,13 +15,12 @@ Change log:
 
 | Date       | Description                             |
 |------------|-----------------------------------------|
-| 2025-09-11 | First draft version |
+| 2025-09-11 | First release 1.0.2 |
 | 2025-09-05 | Project in development |
 
 ### Functionality
 
 Specviz is a Qt-based application for viewing, comparing, and managing spectral datasets.  
-It provides the following functionality:
 
 - **Dataset Management**
   - Load spectral data files from multiple formats (e.g., AMPAS `.json`, Argyll `.sp`).
@@ -32,27 +31,14 @@ It provides the following functionality:
 - **Plotting and Visualization**
   - Interactive graph plotting using QCustomPlot.
   - Multiple datasets can be overlaid and toggled on/off.
-  - Dataset and curve selection via tree view.
   - Customizable line styles (solid, dash, dot, etc.).
-  - Per-curve color selection with swatch preview.
   - Gradient bar visualization of the spectral wavelength range (380–780 nm).
    
-- **Interactive Tools**
+- **Tracing Tools**
   - Mouse-over tracing: display exact X/Y values of datasets under the cursor.
   - Highlighted tracer markers with dataset and curve labels.
   - Status bar and dataset label update dynamically based on selection and trace.
-
-- **UI Features**
-  - Dark-theme aware, with a stylesheet supporting role-based colors and font sizes.
-  - Customizable widget styling (buttons, combo boxes, checkboxes, tree view, frames).
-  - Dataset panel (`datasetWidget`) that automatically shows/hides depending on whether data is loaded.
-  - Copy the current plot to the clipboard for easy sharing.
-
-- **Profiles and Settings**
-  - Input and output ICC profile support (e.g., sRGB2014 input).
-  - Auto-detection of output display ICC profile.
-  - Persistent settings (last open/save directory, user preferences).
-
+  
 - **Help and About**
   - About dialog with version, copyright, and third-party licenses (Qt, QCustomPlot).
   - Quick links to GitHub README and issue tracker.
@@ -138,11 +124,16 @@ https://github.com/mikaelsundell/specviz/issues
 
 3rdparty packages and their copyrights:
 
-Qt   
-Copyright (C) 2019 The Qt Company Ltd.
+Qt Toolkit
+Copyright (C) 2025 The Qt Company Ltd. and/or its subsidiary(-ies).    
+Qt is licensed under the GNU Lesser General Public License (LGPL) version 3.    
+For details, see https://www.qt.io/licensing/ and https://doc.qt.io/qt-6/lgpl.html
 
-QCustomPlot   
-Copyright (C) 2011-2022 Emanuel Eichhammer
+QCustomPlot
+Copyright (C) 2011-2025 Emanuel Eichhammer   
+QCustomPlot is licensed under the GNU General Public License (GPL) version 3.   
+or a commercial license.    
+For details, see https://www.qcustomplot.com/
 
 -------
 README crafted with a little help from ChatGPT
