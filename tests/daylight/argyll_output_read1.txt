@@ -1,0 +1,10 @@
+ Result is XYZ: 42740.391921 44632.401250 41429.614830, D50 Lab: 870.491836 -8.730250 -61.328292
+ Ambient = 44632.4 Lux, CCT = 5528K (Duv 0.0031)
+ Suggested EV @ ISO100 for 44632.4 Lux incident light = 14.1
+ Closest Planckian temperature = 5419K (DE2K 4.3)
+ Closest Daylight temperature  = 5538K (DE2K -0.4)
+ Color Rendering Index (Ra) = 99.0 [ R9 = 95.4 ]
+  R1  = 99.1  R2  = 99.8  R3  = 98.6  R4  = 98.8  R5  = 99.5  R6  = 99.5  R7  = 98.8
+  R8  = 97.9  R9  = 95.4  R10 = 99.2  R11 = 98.8  R12 = 98.6  R13 = 99.4  R14 = 99.1
+ Television Lighting Consistency Index 2012 (Qa) = 100.0
+ IES TM-30-15 Rf = 99.11 Rg = 99.49 CCT = 5528 Duv = -0.000250
