@@ -19,6 +19,7 @@ QMainWindow::separator {
 
 QCheckBox {
     color: $text;
+    background-color: $base;
     font-size: $defaultsize;
     spacing: 8px;
     padding-right: 10px;
@@ -27,7 +28,7 @@ QCheckBox {
 QCheckBox::indicator {
     width: 18px;
     height: 18px;
-    background-color: $base;
+    background-color: $basealt;
     border: 1px solid $border;
 }
 
@@ -38,6 +39,7 @@ QCheckBox::indicator:checked {
 QComboBox {
     color: $text;
     font-size: $defaultsize;
+    background-color: $basealt;
     padding-left: 10px;
     padding-right: 10px;
     padding-bottom: 2px;
@@ -125,7 +127,7 @@ QTreeView
 {
     font-size: $defaultsize;
     color: $text;
-    background-color: $basealt;
+    background-color: $base;
     selection-background-color: $highlight;
     alternate-background-color: $base;
 }
@@ -133,6 +135,7 @@ QTreeView
 QTreeView QHeaderView:section
 {
     color: $text;
+    background-color: $basealt;
     border: 1px solid $border;
     padding: 4px 6px;
 }
@@ -140,7 +143,7 @@ QTreeView QHeaderView:section
 QTreeView::indicator {
     width: 18px;
     height: 18px;
-    background-color: $base;
+    background-color: $basealt;
     border: 1px solid $border;
 }
 

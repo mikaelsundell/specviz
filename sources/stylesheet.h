@@ -36,11 +36,20 @@ public:
         LargeSize,
     };
     Q_ENUM(FontRole)
+    
+    enum Theme {
+        Dark,
+        Light
+    };
+    Q_ENUM(Theme)
 
     static Stylesheet* instance();
     void applyQss(const QString& qss);
     bool loadQss(const QString& path);
     QString compiled() const;
+    
+    void setTheme(Theme theme);
+    Theme theme() const;
 
     void setColor(ColorRole role, const QColor& color);
     QColor color(ColorRole role) const;
