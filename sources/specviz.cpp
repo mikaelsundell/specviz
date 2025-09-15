@@ -230,16 +230,16 @@ SpecvizPrivate::loadDataset(const QString& filename)
         d.ui->plotWidget->addGraph();
         int graphIndex = d.ui->plotWidget->graphCount() - 1;
         QCPGraph* graph = d.ui->plotWidget->graph(graphIndex);
-        graph->setName(ds.indices[i]);
+        graph->setName(ds.name + " - " + ds.indices[i]);
         graph->setProperty("datasetIndex", d.datasets.size() - 1);
         
         QColor color;
         QString idx = ds.indices[i].toUpper();
-        if (idx == "R")
+        if (idx == "R" || idx == "X")
             color = Qt::red;
-        else if (idx == "G")
+        else if (idx == "G" || idx == "Y")
             color = Qt::green;
-        else if (idx == "B")
+        else if (idx == "B" || idx == "Z")
             color = Qt::blue;
         else
             color = QColor::fromHslF((i * 0.15), 0.7, 0.5);
@@ -416,11 +416,13 @@ SpecvizPrivate::stylesheet()
     d.ui->plotWidget->yAxis->setTickLabelColor(text);
 
     QFont labelFont = d.ui->plotWidget->xAxis->labelFont();
-    labelFont.setPointSize(11);
+    labelFont.setPointSize(ss->fontSize(Stylesheet::SmallSize));
     d.ui->plotWidget->xAxis->setLabelFont(labelFont);
     d.ui->plotWidget->yAxis->setLabelFont(labelFont);
     d.ui->plotWidget->xAxis->setLabelColor(text);
     d.ui->plotWidget->yAxis->setLabelColor(text);
+    d.ui->plotWidget->xAxis->setTickLabelFont(labelFont);
+    d.ui->plotWidget->yAxis->setTickLabelFont(labelFont);
 
     QColor grid = ss->color(Stylesheet::Border);
     QPen gridPen(grid);
@@ -432,10 +434,10 @@ SpecvizPrivate::stylesheet()
     d.ui->plotWidget->legend->setBorderPen(QPen(border));
 
     QFont legendFont = d.ui->plotWidget->legend->font();
-    legendFont.setPointSize(11);
+    legendFont.setPointSize(ss->fontSize(Stylesheet::DefaultSize));
     d.ui->plotWidget->legend->setFont(legendFont);
     d.ui->plotWidget->legend->setTextColor(text);
-    d.ui->plotWidget->legend->setIconBorderPen(QPen(border));
+    d.ui->plotWidget->legend->setIconBorderPen(Qt::NoPen);
 }
 
 void
@@ -699,7 +701,7 @@ SpecvizPrivate::itemSelectionChanged()
 
     d.ui->plotWidget->legend->setVisible(true);
     d.ui->plotWidget->xAxis->setLabel("wavelength (nm)");
-    d.ui->plotWidget->yAxis->setLabel(ds.units + " (selected)");
+    d.ui->plotWidget->yAxis->setLabel(ds.name + " - " + ds.units);
     d.ui->plotWidget->rescaleAxes();
     updatePlot();
 

@@ -158,16 +158,16 @@ Stylesheet::setTheme(Theme theme)
         map(Text,       QColor::fromHsl(0,   0, 15));
         map(TextDisabled, QColor::fromHsl(0, 0, 65));
         map(Highlight,  QColor::fromHsl(210, 90, 120));
-        map(Border,     QColor::fromHsl(0,   0, 180));
-        map(BorderAlt,  QColor::fromHsl(0,   0, 190));
+        map(Border,     QColor::fromHsl(0,   0, 200));
+        map(BorderAlt,  QColor::fromHsl(0,   0, 220));
         map(Scrollbar,  QColor::fromHsl(0,   0, 85));
         map(Progress,   QColor::fromHsl(210, 90, 45));
-        map(Button,     QColor::fromHsl(0,   0, 96));
-        map(ButtonAlt,  QColor::fromHsl(0,   0, 92));
+        map(Button,     QColor::fromHsl(0,   0, 180));
+        map(ButtonAlt,  QColor::fromHsl(0,   0, 160));
     }
 
-    setFontSize(DefaultSize, 11);
-    setFontSize(SmallSize, 9);
+    setFontSize(DefaultSize, 12);
+    setFontSize(SmallSize, 10);
     setFontSize(LargeSize, 14);
 
     p->compiled.clear();

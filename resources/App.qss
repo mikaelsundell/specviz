@@ -123,6 +123,15 @@ QPushButton:pressed
     );
 }
 
+QTextBrowser
+{
+    font-size: $defaultsize;
+    color: $text;
+    background-color: $base;
+    selection-background-color: $highlight;
+    alternate-background-color: $base;
+}
+
 QTreeView
 {
     font-size: $defaultsize;
