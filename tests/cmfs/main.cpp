@@ -1,5 +1,0 @@
-
-
-
-
-// http://cvrl.ucl.ac.uk/cmfs.htm

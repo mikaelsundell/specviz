@@ -72,7 +72,7 @@ if (APPLE)
         OUTPUT_NAME ${project_name}
     )
     target_link_libraries (${project_name} 
-        Qt6::Core Qt6::Gui Qt6::GuiPrivate Qt6::PrintSupport Qt6::Widgets
+        Qt6::Core Qt6::Gui Qt6::Widgets
         ${LCMS2_LIBRARY}
         "-framework CoreFoundation"
         "-framework AppKit")
@@ -87,7 +87,7 @@ elseif (WIN32)
     )
     target_include_directories (${project_name} PRIVATE ${LCMS2_INCLUDE_DIR})
     target_link_libraries (${project_name} 
-        Qt6::Core Qt6::Gui Qt6::GuiPrivate PrintSupport Qt6::Widgets
+        Qt6::Core Qt6::Gui Qt6::Widgets
         ${LCMS2_LIBRARY}
         "User32.lib"
         "Gdi32.lib"
@@ -123,3 +123,6 @@ target_compile_definitions (${project_name} PRIVATE
 )
 
 target_include_directories (${project_name} PRIVATE ${CMAKE_SOURCE_DIR})
+
+# tests
+add_subdirectory (tests/colorchecker)

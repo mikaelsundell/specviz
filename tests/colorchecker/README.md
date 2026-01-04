@@ -7,11 +7,11 @@ The purpose is **not to recover exact instrument data**, but to produce a **reas
 
 ## Purpose
 
-- Approximate **illuminant spectral data** from a Sekonic C-700 screenshot.
+- Approximate illuminant spectral data from a Sekonic C-700 screenshot.
 - Validate extracted spectra against:
-  - Measured **reflectance curves**
-  - **CIE color matching functions (CMFs)**
-- Verify **color space output** from camera pipelines (e.g. Canon 5D).
+  - Measured reflectance curves
+  - CIE color matching functions (CMFs)
+- Verify color space output from camera pipelines (e.g. Canon 5D).
 
 This example acts as a bridge between:
 - Instrument screenshots
@@ -35,10 +35,21 @@ http://cvrl.ucl.ac.uk/cmfs.htm
 
 Specifically:
 
-CIE 1931 2° observer
-
-XYZ color matching functions
-
-Modified by Judd (1951) and Vos (1978)
+- CIE 1931 2° observer
+- XYZ color matching functions
+- Modified by Judd (1951) and Vos (1978)
 
 These CMFs are used to convert the extracted spectral data into CIE XYZ tristimulus values for comparison and validation.
+
+
+## Reference ColorChecker Classic spectra data
+
+The reflectance spectra are sourced from **BabelColor**, which provides measured spectral data for the original Macbeth ColorChecker under standardized conditions:
+
+https://babelcolor.com/colorchecker-2.htm
+
+Specifically:
+
+- ColorChecker Classic (24 patches)
+- Spectral reflectance
+- Wavelength range 380–780 nm

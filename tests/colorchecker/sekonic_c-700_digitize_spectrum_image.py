@@ -121,7 +121,7 @@ def clean_and_interpolate(wav, val):
     valc = val[mask]
     # smooth small gaps by linear interpolation
     # produce values at exact 5 nm steps
-    new_wav = np.arange(380.0, 780.0 + 1e-6, 5.0)
+    new_wav = np.arange(380.0, 780.0 + 1e-6, 10.0)
     new_val = np.interp(new_wav, wavc, valc)
     return new_wav, new_val
 
@@ -206,7 +206,7 @@ def main():
     
     wav, val = map_pixels_to_physical(xs, ys, bbox)
     new_wav, new_val = clean_and_interpolate(wav, val)
-    outp = inp.with_name(inp.stem + '_5nm.csv')
+    outp = inp.with_name(inp.stem + '_10nm.csv')
     with open(outp, 'w') as f:
         f.write('wavelength_nm,value\n')
         for wv, vv in zip(new_wav, new_val):
