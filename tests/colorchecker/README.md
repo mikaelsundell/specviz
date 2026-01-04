@@ -3,11 +3,11 @@ ColorChecker Sekonic C700 validation
 
 ![ColorChecker](colorchecker_canon5d.jpg "ColorChecker canon5d image")
 
-*Figure 1 - ColorChecker photographed with Canon 5D under test illumination.*
+*Figure 1 - ColorChecker photographed with Canon 5D under measured Sekonic C-700 illuminant.*
 
 ![ColorChecker](colorchecker.jpg "ColorChecker reference image")
 
-*Figure 2 - ColorChecker Classic reference chart.*
+*Figure 2 — Spectrally synthesized ColorChecker under measured Sekonic C-700 illuminant.*
 
 This example demonstrates how to **digitize an approximate spectral power distribution (SPD) from a Sekonic C-700 spectrum image** and use it together with measured reflectance data and CIE color matching functions to perform **end-to-end colorimetric validation**.
 
@@ -25,9 +25,9 @@ This repository therefore functions as a **small, self-contained spectral test p
 - Combine the illuminant with **measured ColorChecker reflectance spectra**.
 - Convert illuminated spectra into **CIE XYZ tristimulus values** using standard CMFs.
 - Validate downstream color processing stages, including:
-  - normalization / exposure anchoring,
-  - chromatic adaptation,
-  - XYZ → sRGB conversion.
+  - normalization / exposure anchoring
+  - chromatic adaptation
+  - XYZ → sRGB conversion
 - Provide a reproducible reference for **color pipeline verification** (e.g. camera, DCC, or rendering pipelines).
 
 This example acts as a bridge between:
