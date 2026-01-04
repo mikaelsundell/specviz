@@ -390,8 +390,6 @@ static XYZ adapt_bradford(const XYZ& xyz, const XYZ& src_white_xyz, const XYZ& d
     return mul3x3(A, xyz);
 }
 
-
-
 // Approximate daylight locus xy from CCT (valid ~4000K–25000K; OK-ish around 5392K)
 static XY cct_to_xy_daylight(double T)
 {
@@ -514,6 +512,32 @@ main(int argc, char** argv)
 
     try
     {
+        // Colorchecker pipeline overview
+        //
+        // 1. Parse spectral reflectance for each ColorChecker patch (unitless, 0–1).
+        // 2. Parse illuminant spectral power distribution (SPD).
+        // 3. Parse CIE color matching functions (CMFs).
+        //
+        // 4. Compute the illuminant white XYZ by integrating the SPD against the CMFs
+        //    (perfect diffuser assumption).
+        //
+        // 5. Determine scene white luminance (Y) using the ColorChecker white patch
+        //    (patch #19), after chromatic adaptation to D65.
+        //    This establishes the reference exposure / normalization level.
+        //
+        // 6. For each patch:
+        //    a) Multiply reflectance by illuminant SPD (illuminated spectrum).
+        //    b) Integrate illuminated spectrum against CMFs → XYZ.
+        //    c) Apply scene exposure (in EV).
+        //    d) Chromatically adapt from the illuminant white to D65 (Bradford).
+        //    e) Normalize XYZ by the scene white Y to anchor relative luminance.
+        //    f) Convert XYZ → linear sRGB → encoded 8-bit sRGB.
+        //
+        // This ordering is critical:
+        // - Chromatic adaptation must occur before white normalization.
+        // - White reference and patch XYZ must be in the same photometric scale.
+        // - Normalization anchors exposure without altering chromaticity.
+
         auto patches = parse_colorchecker_csv(argv[1]);
         auto illuminant = parse_illuminant_csv(argv[2]);
         auto cmfs = parse_cmf_csv(argv[3]);
@@ -532,6 +556,42 @@ main(int argc, char** argv)
         std::vector<RGB8> patch_colors;
         
         constexpr double DELTA_NM = 10.0; // delta in reflectance + illuminant csv
+        
+        std::vector<SpectralSample> perfect_diffuser;
+        for (const auto& s : illuminant.samples)
+        {
+            perfect_diffuser.push_back({ s.wavelength_nm, s.value });
+        }
+
+        XYZ illuminant_white_xyz = integrate_xyz(
+            perfect_diffuser,
+            cmfs,
+            illuminant.samples,
+            DELTA_NM
+        );
+        
+        double white_Y = 0.0;
+        for (const auto& patch : patches)
+        {
+            if (patch.number == 19)
+            {
+                auto illuminated = combine_reflectance_with_illuminant(
+                    patch.samples, illuminant.samples);
+
+                XYZ w = integrate_xyz(illuminated, cmfs, illuminant.samples, DELTA_NM);
+                
+                XYZ d65_white = D65_white_XYZ();
+                w = adapt_bradford(
+                    w,
+                    illuminant_white_xyz,
+                    d65_white
+                );
+                
+                white_Y = w.y;
+                break;
+            }
+        }
+        
         for (const auto& patch : patches)
         {
             auto illuminated = combine_reflectance_with_illuminant(
@@ -546,16 +606,23 @@ main(int argc, char** argv)
                 DELTA_NM
             );
             
-            // scene exposure (in stops)
             double exposure_ev = 0.0;
             double exposure_scale = std::pow(2.0, exposure_ev);
 
-            xyz.z *= exposure_scale;
+            xyz.x *= exposure_scale;
             xyz.y *= exposure_scale;
             xyz.z *= exposure_scale;
+
+            XYZ d65_white = D65_white_XYZ();
+            xyz = adapt_bradford(
+                xyz,
+                illuminant_white_xyz,
+                d65_white
+            );
             
-            // white-balance / adapt from measured CCT to D65
-            xyz = adapt_measured_kelvin_to_D65(xyz, 5392.0);
+            xyz.x /= white_Y;
+            xyz.y /= white_Y;
+            xyz.z /= white_Y;
 
             auto rgb  = xyz_to_srgb(xyz.x, xyz.y, xyz.z);
             auto rgb8 = srgb_to_8bit(rgb.r, rgb.g, rgb.b);
