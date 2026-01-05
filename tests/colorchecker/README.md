@@ -3,11 +3,11 @@ ColorChecker Sekonic C700 validation
 
 ![ColorChecker](colorchecker_canon5d.jpg "ColorChecker canon5d image")
 
-*Figure 1 - ColorChecker photographed with Canon 5D under measured Sekonic C-700 illuminant.*
+*Figure 1 - ColorChecker photographed with Canon 5D under measured Sekonic C-700 illuminant in sRGB.*
 
 ![ColorChecker](colorchecker.jpg "ColorChecker reference image")
 
-*Figure 2 — Spectrally synthesized ColorChecker under measured Sekonic C-700 illuminant.*
+*Figure 2 — Spectrally synthesized ColorChecker under measured Sekonic C-700 illuminant in sRGB.*
 
 This example demonstrates how to **digitize an approximate spectral power distribution (SPD) from a Sekonic C-700 spectrum image** and use it together with measured reflectance data and CIE color matching functions to perform **end-to-end colorimetric validation**.
 
