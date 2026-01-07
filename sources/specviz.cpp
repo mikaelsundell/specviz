@@ -117,8 +117,6 @@ SpecvizPrivate::init()
     d.ui.reset(new Ui_Specviz());
     d.ui->setupUi(d.window.data());
     initPlot();
-    // settings
-    loadSettings();
     // tree
     tree()->setHeaderLabels(QStringList() << "Dataset"
                                           << "Display"
@@ -154,6 +152,8 @@ SpecvizPrivate::init()
     connect(d.ui->plotWidget, &QCustomPlot::mouseMove, this, &SpecvizPrivate::plotmouseMoveEvent);
     connect(d.ui->treeWidget, &QTreeWidget::itemChanged, this, &SpecvizPrivate::itemChanged);
     connect(d.ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &SpecvizPrivate::itemSelectionChanged);
+    // settings
+    loadSettings();
 // debug
 #ifdef QT_DEBUG
     QMenu* menu = d.ui->menubar->addMenu("Debug");
@@ -648,7 +648,7 @@ SpecvizPrivate::plotmouseMoveEvent(QMouseEvent* event)
         }
     }
     d.ui->plotWidget->replot(QCustomPlot::rpQueuedReplot);
-    d.ui->dataset->setText(message.trimmed());
+    d.ui->traceLabel->setText(message.trimmed());
 }
 
 void
@@ -726,7 +726,7 @@ SpecvizPrivate::itemSelectionChanged()
     d.ui->plotWidget->rescaleAxes();
     updatePlot();
 
-    d.ui->dataset->setText(ds.name);
+    d.ui->traceLabel->setText(ds.name);
 }
 
 #include "specviz.moc"
