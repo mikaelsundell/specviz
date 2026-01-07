@@ -6,6 +6,7 @@
 
 #include "ampasfile.h"
 #include "argyllfile.h"
+#include "csvfile.h"
 
 #include <QFileInfo>
 #include <memory>

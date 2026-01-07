@@ -102,7 +102,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -141,6 +141,7 @@
      <addaction name="themeDark"/>
     </widget>
     <addaction name="menuTheme"/>
+    <addaction name="viewLegend"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -410,7 +411,7 @@
     <string>Clear</string>
    </property>
    <property name="shortcut">
-    <string>Del</string>
+    <string>Backspace</string>
    </property>
   </action>
   <action name="displayExpand">
@@ -451,6 +452,20 @@
    </property>
    <property name="text">
     <string>Dark</string>
+   </property>
+  </action>
+  <action name="viewLegend">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Legend</string>
+   </property>
+   <property name="shortcut">
+    <string>L</string>
    </property>
   </action>
  </widget>

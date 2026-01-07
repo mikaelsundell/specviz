@@ -41,6 +41,8 @@ public:
     void enable(bool enable);
     void profile();
     void stylesheet();
+    void loadSettings();
+    void saveSettings();
 
 public Q_SLOTS:
     void open();
@@ -49,6 +51,7 @@ public Q_SLOTS:
     void clear();
     void light();
     void dark();
+    void legendChanged(bool enabled);
     void openAbout();
     void openGithubReadme();
     void openGithubIssues();
@@ -75,16 +78,17 @@ public:
             about->github->setTextInteractionFlags(Qt::TextBrowserInteraction);
             about->github->setOpenExternalLinks(true);
             QFile file(":/files/resources/Copyright.txt");
-            file.open(QIODevice::ReadOnly | QIODevice::Text);
-            QTextStream in(&file);
-            QString text = in.readAll();
-            file.close();
-            about->licenses->setText(text);
+            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QTextStream in(&file);
+                about->licenses->setText(in.readAll());
+                file.close();
+            }
         }
     };
     struct Data {
         QStringList arguments;
         QStringList extensions;
+        bool legend;
         QVector<QPointer<QCPItemTracer>> tracers;
         QList<SpecFile::Dataset> datasets;
         QPointer<QCPItemRect> gradientRect;
@@ -113,12 +117,14 @@ SpecvizPrivate::init()
     d.ui.reset(new Ui_Specviz());
     d.ui->setupUi(d.window.data());
     initPlot();
+    // settings
+    loadSettings();
     // tree
     tree()->setHeaderLabels(QStringList() << "Dataset"
                                           << "Display"
                                           << "Source");
     tree()->setColumnWidth(0, 160);
-    tree()->setColumnWidth(1, 100);
+    tree()->setColumnWidth(1, 80);
     tree()->header()->setSectionResizeMode(2, QHeaderView::Stretch);
     // header
     header()->setHeaderLabels(QStringList() << "Name"
@@ -140,6 +146,7 @@ SpecvizPrivate::init()
             actions->addAction(d.ui->themeDark);
         }
     }
+    connect(d.ui->viewLegend, &QAction::toggled, this, &SpecvizPrivate::legendChanged);
     connect(d.ui->helpAbout, &QAction::triggered, this, &SpecvizPrivate::openAbout);
     connect(d.ui->helpGithubReadme, &QAction::triggered, this, &SpecvizPrivate::openGithubReadme);
     connect(d.ui->helpGithubIssues, &QAction::triggered, this, &SpecvizPrivate::openGithubIssues);
@@ -147,15 +154,6 @@ SpecvizPrivate::init()
     connect(d.ui->plotWidget, &QCustomPlot::mouseMove, this, &SpecvizPrivate::plotmouseMoveEvent);
     connect(d.ui->treeWidget, &QTreeWidget::itemChanged, this, &SpecvizPrivate::itemChanged);
     connect(d.ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &SpecvizPrivate::itemSelectionChanged);
-    // stylesheet
-    QString theme = settingsValue("theme", "dark").toString();
-    if (theme == "dark") {
-        dark();
-        d.ui->themeDark->setChecked(true);
-    } else {
-        light();
-        d.ui->themeLight->setChecked(true);
-    }
 // debug
 #ifdef QT_DEBUG
     QMenu* menu = d.ui->menubar->addMenu("Debug");
@@ -211,40 +209,43 @@ SpecvizPrivate::loadDataset(const QString& filename)
     if (!spec.isLoaded()) {
         return false;
     }
-
     auto ds = spec.data();
     d.datasets.append(ds);
+
     QTreeWidgetItem* treeItem = new QTreeWidgetItem(tree());
     treeItem->setText(0, ds.name);
+    treeItem->setText(2, QFileInfo(filename).fileName());
+    treeItem->setCheckState(0, Qt::Checked);
+    treeItem->setData(0, Qt::UserRole, QVariant::fromValue(d.datasets.size() - 1));
 
     QComboBox* combo = new QComboBox(tree());
     combo->addItems({ "Solid", "Dash", "Dot", "Dash dot", "Dash dot dot" });
     tree()->setItemWidget(treeItem, 1, combo);
 
-    treeItem->setText(2, QFileInfo(filename).fileName());
-    treeItem->setCheckState(0, Qt::Checked);
-    treeItem->setData(0, Qt::UserRole, QVariant::fromValue(d.datasets.size() - 1));
+    static const QVector<QColor> palette = {
+        QColor("#e41a1c"),  // red
+        QColor("#377eb8"),  // blue
+        QColor("#4daf4a"),  // green
+        QColor("#984ea3"),  // purple
+        QColor("#ff7f00"),  // orange
+        QColor("#ffff33"),  // yellow
+        QColor("#a65628"),  // brown
+        QColor("#f781bf"),  // pink
+        QColor("#999999")   // gray
+    };
 
     QVector<int> graphIndices;
     for (int i = 0; i < ds.indices.size(); ++i) {
         d.ui->plotWidget->addGraph();
         int graphIndex = d.ui->plotWidget->graphCount() - 1;
         QCPGraph* graph = d.ui->plotWidget->graph(graphIndex);
+
         graph->setName(ds.name + " - " + ds.indices[i]);
         graph->setProperty("datasetIndex", d.datasets.size() - 1);
-        
-        QColor color;
-        QString idx = ds.indices[i].toUpper();
-        if (idx == "R" || idx == "X")
-            color = Qt::red;
-        else if (idx == "G" || idx == "Y")
-            color = Qt::green;
-        else if (idx == "B" || idx == "Z")
-            color = Qt::blue;
-        else
-            color = QColor::fromHslF((i * 0.15), 0.7, 0.5);
 
+        QColor color = palette[i % palette.size()];
         graph->setPen(QPen(color, 2));
+        graph->setVisible(true);
 
         QVector<double> x, y;
         x.reserve(ds.data.size());
@@ -254,35 +255,21 @@ SpecvizPrivate::loadDataset(const QString& filename)
             y << (i < it.value().size() ? it.value().at(i) : 0.0);
         }
         graph->setData(x, y);
+        graphIndices << graphIndex;
 
         QTreeWidgetItem* child = new QTreeWidgetItem(treeItem);
         child->setText(0, ds.indices[i]);
         child->setCheckState(0, Qt::Checked);
         child->setData(0, Qt::UserRole, graphIndex);
-        graph->setVisible(true);
 
         QComboBox* colorCombo = new QComboBox(tree());
-        QList<QPair<QColor, QString>> colors
-            = { { Qt::red, "Red" },         { Qt::green, "Green" },   { Qt::blue, "Blue" },   { Qt::cyan, "Cyan" },
-                { Qt::magenta, "Magenta" }, { Qt::yellow, "Yellow" }, { Qt::black, "Black" }, { Qt::gray, "Gray" } };
-
-        for (const auto& entry : colors) {
+        for (const QColor& c : palette) {
             QPixmap swatch(16, 16);
-            swatch.fill(entry.first);
-            colorCombo->addItem(QIcon(swatch), entry.second, entry.first);
+            swatch.fill(c);
+            colorCombo->addItem(QIcon(swatch), QString(), c);
         }
 
-        int idxColor = -1;
-        for (int i = 0; i < colors.size(); ++i) {
-            if (colors[i].first == color) {
-                idxColor = i;
-                break;
-            }
-        }
-        if (idxColor >= 0) {
-            colorCombo->setCurrentIndex(idxColor);
-        }
-
+        colorCombo->setCurrentIndex(i % palette.size());
         connect(colorCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=](int index) {
             QColor c = colorCombo->itemData(index).value<QColor>();
             QPen pen = d.ui->plotWidget->graph(graphIndex)->pen();
@@ -292,8 +279,6 @@ SpecvizPrivate::loadDataset(const QString& filename)
         });
 
         tree()->setItemWidget(child, 1, colorCombo);
-
-        graphIndices << graphIndex;
 
         QCPItemTracer* tracer = new QCPItemTracer(d.ui->plotWidget);
         tracer->setGraph(graph);
@@ -320,6 +305,7 @@ SpecvizPrivate::loadDataset(const QString& filename)
         case 4: style = Qt::DashDotDotLine; break;
         default: style = Qt::SolidLine; break;
         }
+
         for (int gi : graphIndices) {
             QPen pen = d.ui->plotWidget->graph(gi)->pen();
             pen.setStyle(style);
@@ -329,7 +315,6 @@ SpecvizPrivate::loadDataset(const QString& filename)
     });
 
     enable(true);
-
     return true;
 }
 
@@ -371,6 +356,10 @@ SpecvizPrivate::eventFilter(QObject* object, QEvent* event)
     if (event->type() == QEvent::ScreenChangeInternal) {
         profile();
         stylesheet();
+    }
+    if (event->type() == QEvent::Close) {
+        saveSettings();
+        return true;
     }
     return QObject::eventFilter(object, event);
 }
@@ -441,6 +430,34 @@ SpecvizPrivate::stylesheet()
 }
 
 void
+SpecvizPrivate::loadSettings()
+{
+    QString theme = settingsValue("theme", "dark").toString();
+    if (theme == "dark") {
+        dark();
+        d.ui->themeDark->setChecked(true);
+    }
+    else {
+        light();
+        d.ui->themeLight->setChecked(true);
+    }
+    d.legend = settingsValue("legend", true).toBool();
+    d.ui->plotWidget->legend->setVisible(d.legend);
+}
+
+void
+SpecvizPrivate::saveSettings()
+{
+    if (Stylesheet::instance()->theme() == Stylesheet::Dark) {
+        setSettingsValue("theme", "dark");
+    }
+    else {
+        setSettingsValue("theme", "light");
+    }
+    setSettingsValue("legend", d.legend);
+}
+
+void
 SpecvizPrivate::open()
 {
     QString openDir = settingsValue("openDir", QDir::homePath()).toString();
@@ -450,12 +467,7 @@ SpecvizPrivate::open()
     }
     QString filter = QString("Spectral data files (%1)").arg(filters.join(' '));
 
-    QStringList filenames = QFileDialog::getOpenFileNames(
-        d.window.data(),
-        "Open spectral data files",
-        openDir,
-        filter
-    );
+    QStringList filenames = QFileDialog::getOpenFileNames(d.window.data(), "Open spectral data files", openDir, filter);
 
     if (filenames.isEmpty())
         return;
@@ -546,7 +558,6 @@ void
 SpecvizPrivate::light()
 {
     Stylesheet::instance()->setTheme(Stylesheet::Light);
-    setSettingsValue("theme", "light");
     stylesheet();
     updatePlot();
 }
@@ -555,8 +566,15 @@ void
 SpecvizPrivate::dark()
 {
     Stylesheet::instance()->setTheme(Stylesheet::Dark);
-    setSettingsValue("theme", "dark");
     stylesheet();
+    updatePlot();
+}
+
+void
+SpecvizPrivate::legendChanged(bool enabled)
+{
+    d.ui->plotWidget->legend->setVisible(enabled);
+    d.legend = enabled;
     updatePlot();
 }
 
@@ -683,7 +701,8 @@ SpecvizPrivate::itemSelectionChanged()
 
     for (int i = 0; i < d.ui->plotWidget->graphCount(); ++i) {
         QCPGraph* graph = d.ui->plotWidget->graph(i);
-        if (!graph) continue;
+        if (!graph)
+            continue;
 
         int graphDataset = graph->property("datasetIndex").toInt();
         QPen pen = graph->pen();
@@ -691,15 +710,17 @@ SpecvizPrivate::itemSelectionChanged()
         if (graphDataset == datasetIndex) {
             graph->addToLegend();
             pen.setWidth(3);
-        } else {
+        }
+        else {
             graph->removeFromLegend();
             pen.setWidth(1);
         }
 
         graph->setPen(pen);
     }
-
-    d.ui->plotWidget->legend->setVisible(true);
+    if (d.legend) {
+        d.ui->plotWidget->legend->setVisible(true);
+    }
     d.ui->plotWidget->xAxis->setLabel("wavelength (nm)");
     d.ui->plotWidget->yAxis->setLabel(ds.name + " - " + ds.units);
     d.ui->plotWidget->rescaleAxes();

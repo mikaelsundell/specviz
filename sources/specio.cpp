@@ -52,5 +52,5 @@ SpecIO::write(const SpecFile::Dataset& dataset, const QString& fileName)
 QList<SpecIO::FileFactory>
 SpecIO::availableFiletypes()
 {
-    return { []() { return new AmpasFile(); }, []() { return new ArgyllFile(); } };
+    return { []() { return new AmpasFile(); }, []() { return new ArgyllFile(); }, []() { return new CsvFile(); } };
 }
