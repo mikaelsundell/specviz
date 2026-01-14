@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>About</class>
- <widget class="QDialog" name="About">
+ <class>MessageBox</class>
+ <widget class="QDialog" name="MessageBox">
   <property name="windowModality">
    <enum>Qt::WindowModality::WindowModal</enum>
   </property>
@@ -76,7 +76,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QLabel" name="name">
+      <widget class="QLabel" name="title">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -85,12 +85,12 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>12</pointsize>
+         <pointsize>13</pointsize>
          <bold>true</bold>
         </font>
        </property>
        <property name="text">
-        <string>Name</string>
+        <string>Title</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -98,14 +98,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="version">
+      <widget class="QLabel" name="url">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
         </font>
        </property>
        <property name="text">
-        <string>Version</string>
+        <string>Url</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -113,32 +113,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="copyright">
+      <widget class="QLabel" name="heading">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
         </font>
        </property>
        <property name="text">
-        <string>Copyright</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignCenter</set>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="github">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Github</string>
+        <string>Heading</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -162,7 +144,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QTextBrowser" name="licenses">
+      <widget class="QTextBrowser" name="details">
        <property name="font">
         <font>
          <pointsize>10</pointsize>
@@ -175,7 +157,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
-      <number>-1</number>
+      <number>6</number>
      </property>
      <property name="topMargin">
       <number>0</number>
@@ -194,17 +176,32 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="close">
+      <widget class="QPushButton" name="reject">
        <property name="font">
         <font>
          <pointsize>11</pointsize>
         </font>
        </property>
        <property name="text">
-        <string>Close</string>
+        <string>Reject</string>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
+       </property>
+       <property name="default">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="accept">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Accept</string>
        </property>
        <property name="default">
         <bool>true</bool>
@@ -233,9 +230,9 @@
  </resources>
  <connections>
   <connection>
-   <sender>close</sender>
+   <sender>reject</sender>
    <signal>clicked()</signal>
-   <receiver>About</receiver>
+   <receiver>MessageBox</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

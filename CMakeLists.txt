@@ -8,7 +8,7 @@ set (project_name "Specviz")
 project (${project_name})
 
 # packages
-set (qt6_modules Core Gui PrintSupport Widgets)
+set (qt6_modules Core Gui Network PrintSupport Widgets)
 find_package (Qt6 COMPONENTS ${qt6_modules} CONFIG REQUIRED)
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTORCC ON)
@@ -72,7 +72,7 @@ if (APPLE)
         OUTPUT_NAME ${project_name}
     )
     target_link_libraries (${project_name} 
-        Qt6::Core Qt6::Gui Qt6::PrintSupport Qt6::Widgets
+        Qt6::Core Qt6::Gui Qt6::Network Qt6::PrintSupport Qt6::Widgets
         ${LCMS2_LIBRARY}
         "-framework CoreFoundation"
         "-framework AppKit")
@@ -87,7 +87,7 @@ elseif (WIN32)
     )
     target_include_directories (${project_name} PRIVATE ${LCMS2_INCLUDE_DIR})
     target_link_libraries (${project_name} 
-        Qt6::Core Qt6::Gui Qt6::PrintSupport Qt6::Widgets
+        Qt6::Core Qt6::Gui Qt6::Network Qt6::PrintSupport Qt6::Widgets
         ${LCMS2_LIBRARY}
         "User32.lib"
         "Gdi32.lib"

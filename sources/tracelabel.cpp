@@ -21,8 +21,7 @@ public:
 
 void
 TraceLabelPrivate::init()
-{
-}
+{}
 
 TraceLabel::TraceLabel(QWidget* parent)
     : QLabel(parent)
@@ -55,13 +54,5 @@ TraceLabel::paintEvent(QPaintEvent* event)
     const QString fullText = QLabel::text();
     const QFontMetrics fm(font());
     const QString elided = fm.elidedText(fullText, Qt::ElideRight, r.width());
-    style()->drawItemText(
-        &p,
-        r,
-        alignment(),
-        opt.palette,
-        isEnabled(),
-        elided,
-        foregroundRole()
-    );
+    style()->drawItemText(&p, r, alignment(), opt.palette, isEnabled(), elided, foregroundRole());
 }

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2025 - present Mikael Sundell
+// https://github.com/mikaelsundell/specviz
+
 #include "stylesheet.h"
 #include "icctransform.h"
 #include <QApplication>
@@ -16,7 +20,6 @@ public:
     ~StylesheetPrivate();
     QString roleName(Stylesheet::ColorRole role) const;
     QString roleName(Stylesheet::FontRole role) const;
-
     QString path;
     QString compiled;
     Stylesheet::Theme theme;
@@ -49,7 +52,7 @@ Stylesheet::Stylesheet()
     setTheme(Stylesheet::Light);
 }
 
-Stylesheet::~Stylesheet() {}
+Stylesheet::~Stylesheet() = default;
 
 void
 Stylesheet::applyQss(const QString& qss)
@@ -98,11 +101,13 @@ Stylesheet::loadQss(const QString& path)
                 s = std::clamp(s * factor / 100.0, 0.0, 1.0);
                 mapped.setHslF(h, s, l, a);
             }
-
+            float h, s, l;
+            mapped.getHslF(&h, &s, &l);
             QString hsl = QString("hsl(%1, %2%, %3%)")
-                              .arg(mapped.hue() == -1 ? 0 : mapped.hue())
-                              .arg(int(mapped.hslSaturationF() * 100))
-                              .arg(int(mapped.lightnessF() * 100));
+                              .arg(h < 0.0f ? 0.0f : h * 360.0f, 0, 'f', 6)
+                              .arg(s * 100.0f, 0, 'f', 6)
+                              .arg(l * 100.0f, 0, 'f', 6);
+
             result.append(hsl);
         }
 
@@ -137,13 +142,16 @@ Stylesheet::setTheme(Theme theme)
     };
 
     if (theme == Dark) {
-        map(Base, QColor::fromHsl(220, 76, 6));
-        map(BaseAlt, QColor::fromHsl(220, 30, 12));
+        map(Base, QColor::fromHsl(220, 6, 48));
+        map(BaseAlt, QColor::fromHsl(220, 6, 56));
+        map(Dock, QColor::fromHsl(220, 6, 56));
+        map(DockAlt, QColor::fromHsl(220, 6, 40));
         map(Accent, QColor::fromHsl(220, 6, 20));
         map(AccentAlt, QColor::fromHsl(220, 6, 24));
-        map(Text, QColor::fromHsl(0, 0, 180));
-        map(TextDisabled, QColor::fromHsl(0, 0, 40));
-        map(Highlight, QColor::fromHsl(216, 82, 40));
+        map(Text, QColor::fromHsl(0, 0, 220));
+        map(TextDisabled, QColor::fromHsl(0, 0, 80));
+        map(Highlight, QColor::fromHsl(216, 82, 80));
+        map(HighlightAlt, QColor::fromHsl(216, 10, 60));
         map(Border, QColor::fromHsl(220, 3, 32));
         map(BorderAlt, QColor::fromHsl(220, 3, 64));
         map(Scrollbar, QColor::fromHsl(0, 0, 70));
@@ -154,11 +162,14 @@ Stylesheet::setTheme(Theme theme)
     else {
         map(Base, QColor::fromHsl(0, 0, 220));
         map(BaseAlt, QColor::fromHsl(0, 0, 180));
+        map(Dock, QColor::fromHsl(0, 0, 210));
+        map(DockAlt, QColor::fromHsl(0, 0, 180));
         map(Accent, QColor::fromHsl(210, 10, 92));
         map(AccentAlt, QColor::fromHsl(210, 10, 88));
         map(Text, QColor::fromHsl(0, 0, 15));
         map(TextDisabled, QColor::fromHsl(0, 0, 65));
-        map(Highlight, QColor::fromHsl(210, 90, 120));
+        map(Highlight, QColor::fromHsl(210, 90, 180));
+        map(HighlightAlt, QColor::fromHsl(210, 60, 220));
         map(Border, QColor::fromHsl(0, 0, 200));
         map(BorderAlt, QColor::fromHsl(0, 0, 220));
         map(Scrollbar, QColor::fromHsl(0, 0, 85));

@@ -3,7 +3,9 @@
 // https://github.com/mikaelsundell/specviz
 
 #include "specviz.h"
+#include "githubclient.h"
 #include "icctransform.h"
+#include "messagebox.h"
 #include "platform.h"
 #include "qcustomplot/qcustomplot.h"
 #include "question.h"
@@ -22,7 +24,6 @@
 #include <QToolButton>
 
 // generated files
-#include "ui_about.h"
 #include "ui_specviz.h"
 
 class SpecvizPrivate : public QObject {
@@ -41,6 +42,7 @@ public:
     void enable(bool enable);
     void profile();
     void stylesheet();
+    void checkGithub();
     void loadSettings();
     void saveSettings();
 
@@ -51,40 +53,17 @@ public Q_SLOTS:
     void clear();
     void light();
     void dark();
+    void dataSetChanged(QTreeWidgetItem* item, int column);
+    void dataSetSelectionChanged();
     void legendChanged(bool enabled);
+    void plotMouseMoveEvent(QMouseEvent* event);
+    void updatePlot();
     void openAbout();
     void openGithubReadme();
     void openGithubIssues();
-    void updatePlot();
-    void plotmouseMoveEvent(QMouseEvent* event);
-    void itemChanged(QTreeWidgetItem* item, int column);
-    void itemSelectionChanged();
 
 public:
-    class About : public QDialog {
-    public:
-        About(QWidget* parent = nullptr)
-            : QDialog(parent)
-        {
-            QScopedPointer<Ui_About> about;
-            about.reset(new Ui_About());
-            about->setupUi(this);
-            about->name->setText(PROJECT_NAME);
-            about->version->setText(PROJECT_VERSION);
-            about->copyright->setText(PROJECT_COPYRIGHT);
-            QString url = GITHUB_URL;
-            about->github->setText(QString("Github project: <a href='%1'>%1</a>").arg(url));
-            about->github->setTextFormat(Qt::RichText);
-            about->github->setTextInteractionFlags(Qt::TextBrowserInteraction);
-            about->github->setOpenExternalLinks(true);
-            QFile file(":/files/resources/Copyright.txt");
-            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                QTextStream in(&file);
-                about->licenses->setText(in.readAll());
-                file.close();
-            }
-        }
-    };
+    bool checkVersion(const QString& a, const QString& b);
     struct Data {
         QStringList arguments;
         QStringList extensions;
@@ -92,7 +71,6 @@ public:
         QVector<QPointer<QCPItemTracer>> tracers;
         QList<SpecFile::Dataset> datasets;
         QPointer<QCPItemRect> gradientRect;
-        QScopedPointer<About> about;
         QScopedPointer<Ui_Specviz> ui;
         QPointer<Specviz> window;
     };
@@ -111,12 +89,12 @@ SpecvizPrivate::init()
     QString inputProfile = resources.filePath("sRGB2014.icc");  // built-in Qt input profile
     transform->setInputProfile(inputProfile);
     profile();
-    // about
-    d.about.reset(new About(d.window.data()));
     // ui
     d.ui.reset(new Ui_Specviz());
     d.ui->setupUi(d.window.data());
     initPlot();
+    // event filter
+    d.window->installEventFilter(this);
     // tree
     tree()->setHeaderLabels(QStringList() << "Dataset"
                                           << "Display"
@@ -149,9 +127,9 @@ SpecvizPrivate::init()
     connect(d.ui->helpGithubReadme, &QAction::triggered, this, &SpecvizPrivate::openGithubReadme);
     connect(d.ui->helpGithubIssues, &QAction::triggered, this, &SpecvizPrivate::openGithubIssues);
     connect(d.ui->plotWidget, &QCustomPlot::afterReplot, this, &SpecvizPrivate::updatePlot);
-    connect(d.ui->plotWidget, &QCustomPlot::mouseMove, this, &SpecvizPrivate::plotmouseMoveEvent);
-    connect(d.ui->treeWidget, &QTreeWidget::itemChanged, this, &SpecvizPrivate::itemChanged);
-    connect(d.ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &SpecvizPrivate::itemSelectionChanged);
+    connect(d.ui->treeWidget, &QTreeWidget::itemChanged, this, &SpecvizPrivate::dataSetChanged);
+    connect(d.ui->treeWidget, &QTreeWidget::itemSelectionChanged, this, &SpecvizPrivate::dataSetSelectionChanged);
+    connect(d.ui->plotWidget, &QCustomPlot::mouseMove, this, &SpecvizPrivate::plotMouseMoveEvent);
     // settings
     loadSettings();
 // debug
@@ -164,6 +142,8 @@ SpecvizPrivate::init()
         connect(action, &QAction::triggered, [&]() { this->stylesheet(); });
     }
 #endif
+    // update
+    QTimer::singleShot(0, [this]() { this->checkGithub(); });
     enable(false);
 }
 
@@ -430,6 +410,44 @@ SpecvizPrivate::stylesheet()
 }
 
 void
+SpecvizPrivate::checkGithub()
+{
+    auto* github = new GithubClient(this);
+    connect(github, &GithubClient::releasesReceived, this, [this, github](const QList<Github::Release>& releases) {
+        github->deleteLater();
+
+        if (releases.isEmpty()) {
+            qWarning() << "no github releases found";
+            return;
+        }
+        const Github::Release& latest = releases.first();
+        if (latest.tag == PROJECT_VERSION) {
+            if (latest.assets.isEmpty()) {
+                qWarning() << "no github release assets found";
+                return;
+            }
+            const QString title = QString("There is a new version of %1 available").arg(PROJECT_NAME);
+            const QString heading = tr("What's new in version %1").arg(latest.tag);
+            const QString details = latest.notes;
+            const QUrl url = latest.url;
+            const bool download = MessageBox::update(d.window.data(), title, heading, details, url.toString());
+            if (download) {
+                const Github::Asset& asset = latest.assets.first();
+                QDesktopServices::openUrl(QUrl(asset.url));
+            }
+        }
+    });
+
+    connect(github, &GithubClient::errorOccurred, this, [github](const QString& error) {
+        qWarning() << "github error:" << error;
+        github->deleteLater();
+    });
+
+    github->setRepository("mikaelsundell", "specviz");
+}
+
+
+void
 SpecvizPrivate::loadSettings()
 {
     QString theme = settingsValue("theme", "dark").toString();
@@ -571,88 +589,7 @@ SpecvizPrivate::dark()
 }
 
 void
-SpecvizPrivate::legendChanged(bool enabled)
-{
-    d.ui->plotWidget->legend->setVisible(enabled);
-    d.legend = enabled;
-    updatePlot();
-}
-
-void
-SpecvizPrivate::openAbout()
-{
-    d.about->exec();
-}
-
-void
-SpecvizPrivate::openGithubReadme()
-{
-    QDesktopServices::openUrl(QUrl(QString("%1/blob/master/README.md").arg(GITHUB_URL)));
-}
-
-void
-SpecvizPrivate::openGithubIssues()
-{
-    QDesktopServices::openUrl(QUrl(QString("%1/issues").arg(GITHUB_URL)));
-}
-
-void
-SpecvizPrivate::updatePlot()
-{
-    QCPRange yr = d.ui->plotWidget->yAxis->range();
-    double yMin = yr.lower;
-    double yMax = yr.upper;
-    double height = (yMax - yMin) * 0.01;
-
-    d.gradientRect->topLeft->setCoords(380, yMin);
-    d.gradientRect->bottomRight->setCoords(780, yMin + height);
-    d.ui->plotWidget->replot();
-}
-
-void
-SpecvizPrivate::plotmouseMoveEvent(QMouseEvent* event)
-{
-    double x = d.ui->plotWidget->xAxis->pixelToCoord(event->pos().x());
-    QString message;
-
-    QTreeWidgetItem* rootItem = d.ui->treeWidget->currentItem();
-    while (rootItem && rootItem->parent()) {
-        rootItem = rootItem->parent();
-    }
-    if (rootItem) {
-        int datasetIndex = rootItem->data(0, Qt::UserRole).toInt();
-        if (datasetIndex >= 0 && datasetIndex < d.datasets.size()) {
-            message = d.datasets[datasetIndex].name;
-        }
-    }
-    if (d.ui->trace->isChecked()) {
-        QString traceMsg;
-        for (int i = 0; i < d.ui->plotWidget->graphCount(); ++i) {
-            QCPGraph* graph = d.ui->plotWidget->graph(i);
-            if (!graph->visible() || i >= d.tracers.size())
-                continue;
-
-            QCPItemTracer* tracer = d.tracers[i];
-            if (!tracer)
-                continue;
-
-            tracer->setGraph(graph);
-            tracer->setGraphKey(x);
-            tracer->setVisible(true);
-
-            double y = tracer->position->value();
-            traceMsg += QString("  %1: %2, %3").arg(graph->name()).arg(x, 0, 'f', 2).arg(y, 0, 'f', 3);
-        }
-        if (!traceMsg.isEmpty()) {
-            message += " " + traceMsg;
-        }
-    }
-    d.ui->plotWidget->replot(QCustomPlot::rpQueuedReplot);
-    d.ui->traceLabel->setText(message.trimmed());
-}
-
-void
-SpecvizPrivate::itemChanged(QTreeWidgetItem* item, int column)
+SpecvizPrivate::dataSetChanged(QTreeWidgetItem* item, int column)
 {
     if (!item->parent()) {
         Qt::CheckState rootState = item->checkState(0);
@@ -672,7 +609,7 @@ SpecvizPrivate::itemChanged(QTreeWidgetItem* item, int column)
 }
 
 void
-SpecvizPrivate::itemSelectionChanged()
+SpecvizPrivate::dataSetSelectionChanged()
 {
     QTreeWidgetItem* rootItem = d.ui->treeWidget->currentItem();
     while (rootItem && rootItem->parent()) {
@@ -727,6 +664,97 @@ SpecvizPrivate::itemSelectionChanged()
     updatePlot();
 
     d.ui->traceLabel->setText(ds.name);
+}
+
+void
+SpecvizPrivate::legendChanged(bool enabled)
+{
+    d.ui->plotWidget->legend->setVisible(enabled);
+    d.legend = enabled;
+    updatePlot();
+}
+
+void
+SpecvizPrivate::plotMouseMoveEvent(QMouseEvent* event)
+{
+    double x = d.ui->plotWidget->xAxis->pixelToCoord(event->pos().x());
+    QString message;
+
+    QTreeWidgetItem* rootItem = d.ui->treeWidget->currentItem();
+    while (rootItem && rootItem->parent()) {
+        rootItem = rootItem->parent();
+    }
+    if (rootItem) {
+        int datasetIndex = rootItem->data(0, Qt::UserRole).toInt();
+        if (datasetIndex >= 0 && datasetIndex < d.datasets.size()) {
+            message = d.datasets[datasetIndex].name;
+        }
+    }
+    if (d.ui->trace->isChecked()) {
+        QString traceMsg;
+        for (int i = 0; i < d.ui->plotWidget->graphCount(); ++i) {
+            QCPGraph* graph = d.ui->plotWidget->graph(i);
+            if (!graph->visible() || i >= d.tracers.size())
+                continue;
+
+            QCPItemTracer* tracer = d.tracers[i];
+            if (!tracer)
+                continue;
+
+            tracer->setGraph(graph);
+            tracer->setGraphKey(x);
+            tracer->setVisible(true);
+
+            double y = tracer->position->value();
+            traceMsg += QString("  %1: %2, %3").arg(graph->name()).arg(x, 0, 'f', 2).arg(y, 0, 'f', 3);
+        }
+        if (!traceMsg.isEmpty()) {
+            message += " " + traceMsg;
+        }
+    }
+    d.ui->plotWidget->replot(QCustomPlot::rpQueuedReplot);
+    d.ui->traceLabel->setText(message.trimmed());
+}
+
+void
+SpecvizPrivate::updatePlot()
+{
+    QCPRange yr = d.ui->plotWidget->yAxis->range();
+    double yMin = yr.lower;
+    double yMax = yr.upper;
+    double height = (yMax - yMin) * 0.01;
+
+    d.gradientRect->topLeft->setCoords(380, yMin);
+    d.gradientRect->bottomRight->setCoords(780, yMin + height);
+    d.ui->plotWidget->replot();
+}
+
+void
+SpecvizPrivate::openAbout()
+{
+    QFile file(":/files/resources/Copyright.txt");
+    QString details;
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning() << "failed to open copyright resource:" << file.errorString();
+    }
+    else {
+        QTextStream in(&file);
+        details = in.readAll();
+    }
+    MessageBox::about(d.window.data(), QString("%1 v%2").arg(PROJECT_NAME).arg(PROJECT_VERSION), PROJECT_COPYRIGHT,
+                      details, GITHUB_URL);
+}
+
+void
+SpecvizPrivate::openGithubReadme()
+{
+    QDesktopServices::openUrl(QUrl(QString("%1/blob/master/README.md").arg(GITHUB_URL)));
+}
+
+void
+SpecvizPrivate::openGithubIssues()
+{
+    QDesktopServices::openUrl(QUrl(QString("%1/issues").arg(GITHUB_URL)));
 }
 
 #include "specviz.moc"

@@ -2,7 +2,11 @@
   <qresource prefix="icons">
       <file>../resources/AppIcon.png</file>
       <file>../resources/Checkbox.png</file>
+      <file>../resources/Checked.png</file>
+      <file>../resources/Closed.png</file>
       <file>../resources/Dropdown.png</file>
+      <file>../resources/Open.png</file>
+      <file>../resources/PartiallyChecked.png</file>
   </qresource>
   <qresource prefix="files">
     <file>../resources/Copyright.txt</file>

@@ -180,6 +180,8 @@ parse_cmf_csv(const std::string& filename)
         throw std::runtime_error("Failed to open CMF CSV");
 
     std::string line;
+    std::getline(file, line); // header
+    
     std::vector<CMFSample> cmfs;
 
     while (std::getline(file, line))

@@ -126,6 +126,49 @@ CsvFile::read(const QString& fileName)
 
         return dataset;
     }
+
+    if (headers.size() == 4 && headers[0] == "wavelength" && headers[1] == "xbar" && headers[2] == "ybar"
+        && headers[3] == "zbar") {
+        dataset.units = "CIE color matching functions";
+        dataset.indices << "xbar" << "ybar" << "zbar";
+
+        int minWl = std::numeric_limits<int>::max();
+        int maxWl = std::numeric_limits<int>::min();
+
+        while (!in.atEnd()) {
+            QString line = in.readLine().trimmed();
+            if (line.isEmpty() || line.startsWith('#'))
+                continue;
+
+            QStringList parts = line.split(',', Qt::KeepEmptyParts);
+            if (parts.size() != 4)
+                continue;
+
+            bool okWl = false, okX = false, okY = false, okZ = false;
+            int wl = qRound(parts[0].toDouble(&okWl));
+            double x = parts[1].toDouble(&okX);
+            double y = parts[2].toDouble(&okY);
+            double z = parts[3].toDouble(&okZ);
+
+            if (!okWl || !okX || !okY || !okZ)
+                continue;
+
+            dataset.data[wl] = QVector<double> { x, y, z };
+            minWl = std::min(minWl, wl);
+            maxWl = std::max(maxWl, wl);
+        }
+
+        if (!dataset.data.isEmpty()) {
+            dataset.header.insert("DESCRIPTOR", "CSV: wavelength,xbar,ybar,zbar");
+            dataset.header.insert("SPECTRAL_START_NM", minWl);
+            dataset.header.insert("SPECTRAL_END_NM", maxWl);
+            dataset.header.insert("COLOR_SPACE", "CIE XYZ");
+            dataset.loaded = true;
+        }
+
+        return dataset;
+    }
+
     qWarning() << "CsvFile: unsupported CSV format:" << fileName;
     return dataset;
 }
