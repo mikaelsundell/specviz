@@ -61,7 +61,7 @@ public Q_SLOTS:
 
 public:
     QVector<int> parseVersion(const QString& version);
-    bool latestVersion(const QString& latest, const QString& version);
+    int compareVersion(const QString& version, const QString& other);
     void checkVersion(bool init = false);
     struct Data {
         QStringList arguments;
@@ -140,7 +140,7 @@ SpecvizPrivate::init()
         connect(action, &QAction::triggered, [&]() { this->stylesheet(); });
     }
 #endif
-    // update
+    // version
     QTimer::singleShot(0, [this]() { this->checkVersion(true); });
     enable(false);
 }
@@ -358,8 +358,10 @@ SpecvizPrivate::stylesheet()
     d.ui->plotWidget->setBackground(QBrush(base));
     d.ui->plotWidget->axisRect()->setBackground(QBrush(base));
 
+    QColor axis = ss->color(Stylesheet::BorderAlt);
     QColor text = ss->color(Stylesheet::Text);
-    QPen axisPen(text);
+    
+    QPen axisPen(axis);
     d.ui->plotWidget->xAxis->setBasePen(axisPen);
     d.ui->plotWidget->yAxis->setBasePen(axisPen);
     d.ui->plotWidget->xAxis->setTickPen(axisPen);
@@ -722,19 +724,17 @@ SpecvizPrivate::parseVersion(const QString& version)
     return parts;
 }
 
-bool
-SpecvizPrivate::latestVersion(const QString& latest, const QString& version)
+int
+SpecvizPrivate::compareVersion(const QString& version, const QString& other)
 {
-    const QVector<int> fa = parseVersion(latest);
-    const QVector<int> tb = parseVersion(version);
-    const long long n = std::max(fa.size(), tb.size());
+    const QVector<int> a = parseVersion(version);
+    const QVector<int> b = parseVersion(other);
+    const qsizetype n = std::max(a.size(), b.size());
     for (int i = 0; i < n; ++i) {
-        const int ai = (i < fa.size()) ? fa[i] : 0;
-        const int bi = (i < tb.size()) ? tb[i] : 0;
-        if (ai < bi)
-            return -1;
-        if (ai > bi)
-            return 1;
+        const int ai = (i < a.size()) ? a[i] : 0;
+        const int bi = (i < b.size()) ? b[i] : 0;
+        if (ai < bi) return -1;
+        if (ai > bi) return 1;
     }
     return 0;
 }
@@ -752,7 +752,7 @@ SpecvizPrivate::checkVersion(bool init)
                     return;
                 }
                 const Github::Release& latest = releases.first();
-                if (latestVersion(latest.tag, PROJECT_VERSION)) {
+                if (compareVersion(PROJECT_VERSION, latest.tag) < 0) {
                     const QString skipTag =
                         settingsValue("skipTag", QString()).toString();
                     

@@ -14,7 +14,6 @@ set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTORCC ON)
 set (CMAKE_AUTOUIC ON)
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
-find_package (Lcms2 REQUIRED)
 
 if (WIN32)
     find_package (OpenGL REQUIRED)
@@ -41,7 +40,7 @@ source_group ("Resource Files" FILES ${project_resources})
 
 set (project_copyright "Copyright 2025-present Contributors to the ${project_name} project")
 set (project_identifier "com.github.mikaelsundell.${project_name}")
-set (project_long_version "1.0.4")
+set (project_long_version "1.0.5")
 set (project_short_version "1.0")
 set (project_url "https://github.com/mikaelsundell/specviz")
 
@@ -73,7 +72,6 @@ if (APPLE)
     )
     target_link_libraries (${project_name} 
         Qt6::Core Qt6::Gui Qt6::Network Qt6::PrintSupport Qt6::Widgets
-        ${LCMS2_LIBRARY}
         "-framework CoreFoundation"
         "-framework AppKit")
 
@@ -85,10 +83,8 @@ elseif (WIN32)
         WINVER=0x0A00
         $<$<CONFIG:Debug>:TBB_USE_DEBUG=1>
     )
-    target_include_directories (${project_name} PRIVATE ${LCMS2_INCLUDE_DIR})
     target_link_libraries (${project_name} 
         Qt6::Core Qt6::Gui Qt6::Network Qt6::PrintSupport Qt6::Widgets
-        ${LCMS2_LIBRARY}
         "User32.lib"
         "Gdi32.lib"
         "Shell32.lib"
