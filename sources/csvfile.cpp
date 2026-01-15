@@ -130,7 +130,9 @@ CsvFile::read(const QString& fileName)
     if (headers.size() == 4 && headers[0] == "wavelength" && headers[1] == "xbar" && headers[2] == "ybar"
         && headers[3] == "zbar") {
         dataset.units = "CIE color matching functions";
-        dataset.indices << "xbar" << "ybar" << "zbar";
+        dataset.indices << "xbar"
+                        << "ybar"
+                        << "zbar";
 
         int minWl = std::numeric_limits<int>::max();
         int maxWl = std::numeric_limits<int>::min();

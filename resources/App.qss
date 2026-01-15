@@ -25,8 +25,8 @@ QCheckBox {
 }
 
 QCheckBox::indicator {
-    width: 18px;
-    height: 18px;
+    width: 12px;
+    height: 12px;
     background-color: $basealt;
     border: 1px solid $borderalt;
 }
@@ -195,11 +195,6 @@ QPushButton
     padding-right: 5px;
 }
 
-QPushButton:default
-{
-    font-weight: bold;
-}
-
 QPushButton:disabled
 {
     color: $textdisabled;
@@ -292,8 +287,8 @@ QAbstractScrollArea::corner {
 }
 
 QSplitter::handle {
-    background-color: $dock;
-    height: 5px;
+    height: 10px;
+    background: $base;
 }
 
 QStatusBar {
@@ -307,6 +302,8 @@ QTextBrowser
     font-size: $defaultsize;
     color: $text;
     background-color: $basealt;
+    border: 1px solid $borderalt;
+    selection-background-color: $highlight;
 }
 
 QToolButton
@@ -333,7 +330,8 @@ QTreeView
     color: $text;
     outline: none;
     border: 1px solid $borderalt;
-    background-color: $base;
+    background-color: $basealt;
+    selection-color: $text;
     selection-background-color: $highlight;
     alternate-background-color: $basealt;
 }
@@ -344,7 +342,7 @@ QTreeView QHeaderView:section
     color: $text;
     background-color: $dockalt;
     border: none;
-    padding: 4px 6px;
+    padding: 4px 8px;
 }
 
 QTreeView::indicator {

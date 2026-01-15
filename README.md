@@ -15,7 +15,8 @@ Change log:
 
 | Date       | Description                             |
 |------------|-----------------------------------------|
-| 2025-09-11 | First release 1.0.2 |
+| 2026-01-15 | New release 1.0.5 |
+| 2025-09-15 | First release 1.0.4 |
 | 2025-09-05 | Project in development |
 
 ### Functionality

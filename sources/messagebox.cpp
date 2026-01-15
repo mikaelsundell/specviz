@@ -20,18 +20,25 @@ public:
     struct Data {
         QString title;
         QString url;
-        QString heading;
+        QString text;
         QString details;
         QString acceptText;
         QString rejectText;
-        bool showReject = false;
+        int iconSize;
+        bool showIcon;
+        bool showReject;
         QPointer<MessageBox> dialog;
         QScopedPointer<Ui_MessageBox> ui;
     };
     Data d;
 };
 
-MessageBoxPrivate::MessageBoxPrivate() {}
+MessageBoxPrivate::MessageBoxPrivate()
+{
+    d.iconSize = 128;
+    d.showIcon = true;
+    d.showReject = false;
+}
 
 void
 MessageBoxPrivate::init()
@@ -48,6 +55,16 @@ bool
 MessageBoxPrivate::exec()
 {
     d.dialog->setWindowTitle(d.title);
+
+    d.ui->icon->setFixedSize(d.iconSize, d.iconSize);
+    d.ui->icon->setScaledContents(true);
+    if (d.showIcon) {
+        d.ui->icon->show();
+    }
+    else {
+        d.ui->icon->hide();
+    }
+
     d.ui->title->setText(d.title);
 
     if (d.url.isEmpty()) {
@@ -59,12 +76,12 @@ MessageBoxPrivate::exec()
         d.ui->url->show();
     }
 
-    if (d.heading.isEmpty()) {
-        d.ui->heading->hide();
+    if (d.text.isEmpty()) {
+        d.ui->text->hide();
     }
     else {
-        d.ui->heading->setText(d.heading);
-        d.ui->heading->show();
+        d.ui->text->setText(d.text);
+        d.ui->text->show();
     }
 
     if (d.details.isEmpty()) {
@@ -83,6 +100,10 @@ MessageBoxPrivate::exec()
     else {
         d.ui->reject->hide();
     }
+
+    d.dialog->adjustSize();
+    d.dialog->setMaximumHeight(d.dialog->sizeHint().height());
+
     return d.dialog->exec() == QDialog::Accepted;
 }
 
@@ -100,15 +121,38 @@ MessageBox::~MessageBox() {}
 
 bool
 MessageBox::information(QWidget* parent, const QString& title, const QString& text)
-{}
+{
+    MessageBox box(parent);
+    box.p->d.title = title;
+    box.p->d.text = text;
+    box.p->d.acceptText = tr("Close");
+    box.p->d.iconSize = 64;
+    box.p->d.showReject = false;
+    return box.p->exec();
+}
 
 bool
 MessageBox::warning(QWidget* parent, const QString& title, const QString& text)
-{}
+{
+    MessageBox box(parent);
+    box.p->d.title = title;
+    box.p->d.text = text;
+    box.p->d.acceptText = tr("Close");
+    box.p->d.iconSize = 64;
+    box.p->d.showReject = false;
+    return box.p->exec();
+}
 
 bool
 MessageBox::question(QWidget* parent, const QString& title, const QString& text)
-{}
+{
+    MessageBox box(parent);
+    box.p->d.title = title;
+    box.p->d.text = text;
+    box.p->d.acceptText = tr("Close");
+    box.p->d.iconSize = 64;
+    return box.p->exec();
+}
 
 bool
 MessageBox::about(QWidget* parent, const QString& title, const QString& heading, const QString& details,
@@ -117,7 +161,7 @@ MessageBox::about(QWidget* parent, const QString& title, const QString& heading,
     MessageBox box(parent);
     box.p->d.title = title;
     box.p->d.url = url;
-    box.p->d.heading = heading;
+    box.p->d.text = heading;
     box.p->d.details = details;
     box.p->d.acceptText = tr("Close");
     box.p->d.showReject = false;
@@ -131,7 +175,7 @@ MessageBox::update(QWidget* parent, const QString& title, const QString& heading
     MessageBox box(parent);
     box.p->d.title = title;
     box.p->d.url = url;
-    box.p->d.heading = heading;
+    box.p->d.text = heading;
     box.p->d.details = details;
     box.p->d.acceptText = tr("Download");
     box.p->d.rejectText = tr("Skip");

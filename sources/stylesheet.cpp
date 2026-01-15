@@ -3,7 +3,6 @@
 // https://github.com/mikaelsundell/specviz
 
 #include "stylesheet.h"
-#include "icctransform.h"
 #include <QApplication>
 #include <QFile>
 #include <QMetaEnum>
@@ -134,16 +133,11 @@ Stylesheet::compiled() const
 void
 Stylesheet::setTheme(Theme theme)
 {
-    ICCTransform* transform = ICCTransform::instance();
-
-    auto map = [&](ColorRole role, QColor c) {
-        QColor mapped = transform->map(c.rgb());
-        setColor(role, mapped);
-    };
+    auto map = [&](ColorRole role, QColor color) { setColor(role, color); };
 
     if (theme == Dark) {
-        map(Base, QColor::fromHsl(220, 6, 48));
-        map(BaseAlt, QColor::fromHsl(220, 6, 56));
+        map(Base, QColor::fromHsl(220, 6, 42));
+        map(BaseAlt, QColor::fromHsl(220, 6, 48));
         map(Dock, QColor::fromHsl(220, 6, 56));
         map(DockAlt, QColor::fromHsl(220, 6, 40));
         map(Accent, QColor::fromHsl(220, 6, 20));
@@ -160,8 +154,8 @@ Stylesheet::setTheme(Theme theme)
         map(ButtonAlt, QColor::fromHsl(220, 6, 54));
     }
     else {
-        map(Base, QColor::fromHsl(0, 0, 220));
-        map(BaseAlt, QColor::fromHsl(0, 0, 180));
+        map(Base, QColor::fromHsl(0, 0, 210));
+        map(BaseAlt, QColor::fromHsl(0, 0, 208));
         map(Dock, QColor::fromHsl(0, 0, 210));
         map(DockAlt, QColor::fromHsl(0, 0, 180));
         map(Accent, QColor::fromHsl(210, 10, 92));
@@ -171,8 +165,8 @@ Stylesheet::setTheme(Theme theme)
         map(Highlight, QColor::fromHsl(210, 90, 180));
         map(HighlightAlt, QColor::fromHsl(210, 60, 220));
         map(Border, QColor::fromHsl(0, 0, 200));
-        map(BorderAlt, QColor::fromHsl(0, 0, 220));
-        map(Scrollbar, QColor::fromHsl(0, 0, 85));
+        map(BorderAlt, QColor::fromHsl(0, 0, 180));
+        map(Scrollbar, QColor::fromHsl(0, 0, 180));
         map(Progress, QColor::fromHsl(210, 90, 45));
         map(Button, QColor::fromHsl(0, 0, 180));
         map(ButtonAlt, QColor::fromHsl(0, 0, 160));

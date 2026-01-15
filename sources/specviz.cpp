@@ -4,13 +4,11 @@
 
 #include "specviz.h"
 #include "githubclient.h"
-#include "icctransform.h"
 #include "messagebox.h"
 #include "platform.h"
-#include "qcustomplot/qcustomplot.h"
-#include "question.h"
 #include "specio.h"
 #include "stylesheet.h"
+#include "qcustomplot/qcustomplot.h"
 #include <QActionGroup>
 #include <QClipboard>
 #include <QColorDialog>
@@ -40,9 +38,7 @@ public:
     void setSettingsValue(const QString& key, const QVariant& value);
     bool eventFilter(QObject* object, QEvent* event);
     void enable(bool enable);
-    void profile();
     void stylesheet();
-    void checkGithub();
     void loadSettings();
     void saveSettings();
 
@@ -59,11 +55,14 @@ public Q_SLOTS:
     void plotMouseMoveEvent(QMouseEvent* event);
     void updatePlot();
     void openAbout();
+    void checkUpdates();
     void openGithubReadme();
     void openGithubIssues();
 
 public:
-    bool checkVersion(const QString& a, const QString& b);
+    QVector<int> parseVersion(const QString& version);
+    bool latestVersion(const QString& latest, const QString& version);
+    void checkVersion(bool init = false);
     struct Data {
         QStringList arguments;
         QStringList extensions;
@@ -83,12 +82,10 @@ void
 SpecvizPrivate::init()
 {
     platform::setDarkTheme();
-    // icc profile
-    ICCTransform* transform = ICCTransform::instance();
-    QDir resources(platform::getApplicationPath() + "/Resources");
-    QString inputProfile = resources.filePath("sRGB2014.icc");  // built-in Qt input profile
-    transform->setInputProfile(inputProfile);
-    profile();
+    // colorspace
+    QSurfaceFormat format;
+    format.setColorSpace(QColorSpace::SRgb);
+    QSurfaceFormat::setDefaultFormat(format);
     // ui
     d.ui.reset(new Ui_Specviz());
     d.ui->setupUi(d.window.data());
@@ -124,6 +121,7 @@ SpecvizPrivate::init()
     }
     connect(d.ui->viewLegend, &QAction::toggled, this, &SpecvizPrivate::legendChanged);
     connect(d.ui->helpAbout, &QAction::triggered, this, &SpecvizPrivate::openAbout);
+    connect(d.ui->helpCheckUpdates, &QAction::triggered, this, &SpecvizPrivate::checkUpdates);
     connect(d.ui->helpGithubReadme, &QAction::triggered, this, &SpecvizPrivate::openGithubReadme);
     connect(d.ui->helpGithubIssues, &QAction::triggered, this, &SpecvizPrivate::openGithubIssues);
     connect(d.ui->plotWidget, &QCustomPlot::afterReplot, this, &SpecvizPrivate::updatePlot);
@@ -143,7 +141,7 @@ SpecvizPrivate::init()
     }
 #endif
     // update
-    QTimer::singleShot(0, [this]() { this->checkGithub(); });
+    QTimer::singleShot(0, [this]() { this->checkVersion(true); });
     enable(false);
 }
 
@@ -244,7 +242,7 @@ SpecvizPrivate::loadDataset(const QString& filename)
 
         QComboBox* colorCombo = new QComboBox(tree());
         for (const QColor& c : palette) {
-            QPixmap swatch(16, 16);
+            QPixmap swatch(12, 12);
             swatch.fill(c);
             colorCombo->addItem(QIcon(swatch), QString(), c);
         }
@@ -333,10 +331,6 @@ SpecvizPrivate::eventFilter(QObject* object, QEvent* event)
                 tracer->setVisible(false);
         d.ui->plotWidget->replot(QCustomPlot::rpQueuedReplot);
     }
-    if (event->type() == QEvent::ScreenChangeInternal) {
-        profile();
-        stylesheet();
-    }
     if (event->type() == QEvent::Close) {
         saveSettings();
         return true;
@@ -349,15 +343,6 @@ SpecvizPrivate::enable(bool enable)
 {
     d.ui->dataWidget->setVisible(enable);
     d.ui->fileExportSelected->setEnabled(enable);
-}
-
-void
-SpecvizPrivate::profile()
-{
-    QString outputProfile = platform::getIccProfileUrl(d.window->winId());
-    // icc profile
-    ICCTransform* transform = ICCTransform::instance();
-    transform->setOutputProfile(outputProfile);
 }
 
 void
@@ -393,13 +378,13 @@ SpecvizPrivate::stylesheet()
     d.ui->plotWidget->xAxis->setTickLabelFont(labelFont);
     d.ui->plotWidget->yAxis->setTickLabelFont(labelFont);
 
-    QColor grid = ss->color(Stylesheet::Border);
+    QColor grid = ss->color(Stylesheet::BorderAlt);
     QPen gridPen(grid);
     d.ui->plotWidget->xAxis->grid()->setPen(gridPen);
     d.ui->plotWidget->yAxis->grid()->setPen(gridPen);
     d.ui->plotWidget->legend->setBrush(QBrush(base));
 
-    QColor border = ss->color(Stylesheet::Border);
+    QColor border = ss->color(Stylesheet::BorderAlt);
     d.ui->plotWidget->legend->setBorderPen(QPen(border));
 
     QFont legendFont = d.ui->plotWidget->legend->font();
@@ -408,44 +393,6 @@ SpecvizPrivate::stylesheet()
     d.ui->plotWidget->legend->setTextColor(text);
     d.ui->plotWidget->legend->setIconBorderPen(Qt::NoPen);
 }
-
-void
-SpecvizPrivate::checkGithub()
-{
-    auto* github = new GithubClient(this);
-    connect(github, &GithubClient::releasesReceived, this, [this, github](const QList<Github::Release>& releases) {
-        github->deleteLater();
-
-        if (releases.isEmpty()) {
-            qWarning() << "no github releases found";
-            return;
-        }
-        const Github::Release& latest = releases.first();
-        if (latest.tag == PROJECT_VERSION) {
-            if (latest.assets.isEmpty()) {
-                qWarning() << "no github release assets found";
-                return;
-            }
-            const QString title = QString("There is a new version of %1 available").arg(PROJECT_NAME);
-            const QString heading = tr("What's new in version %1").arg(latest.tag);
-            const QString details = latest.notes;
-            const QUrl url = latest.url;
-            const bool download = MessageBox::update(d.window.data(), title, heading, details, url.toString());
-            if (download) {
-                const Github::Asset& asset = latest.assets.first();
-                QDesktopServices::openUrl(QUrl(asset.url));
-            }
-        }
-    });
-
-    connect(github, &GithubClient::errorOccurred, this, [github](const QString& error) {
-        qWarning() << "github error:" << error;
-        github->deleteLater();
-    });
-
-    github->setRepository("mikaelsundell", "specviz");
-}
-
 
 void
 SpecvizPrivate::loadSettings()
@@ -555,7 +502,8 @@ SpecvizPrivate::clear()
         return;
     }
 
-    if (Question::askQuestion(d.window, "Are you sure you want to remove all datasets and clear the plot?")) {
+    if (MessageBox::question(d.window.data(), tr("Remove all datasets?"),
+                             tr("This will permanently remove all datasets and clear the plot."))) {
         QSignalBlocker blockTree(d.ui->treeWidget);
         QSignalBlocker blockHeader(d.ui->headerWidget);
 
@@ -567,7 +515,6 @@ SpecvizPrivate::clear()
         d.ui->plotWidget->xAxis->setLabel("");
         d.ui->plotWidget->yAxis->setLabel("");
         initPlot();
-
         enable(false);
     }
 }
@@ -741,8 +688,14 @@ SpecvizPrivate::openAbout()
         QTextStream in(&file);
         details = in.readAll();
     }
-    MessageBox::about(d.window.data(), QString("%1 v%2").arg(PROJECT_NAME).arg(PROJECT_VERSION), PROJECT_COPYRIGHT,
+    MessageBox::about(d.window.data(), QString("%1 %2").arg(PROJECT_NAME).arg(PROJECT_VERSION), PROJECT_COPYRIGHT,
                       details, GITHUB_URL);
+}
+
+void
+SpecvizPrivate::checkUpdates()
+{
+    checkVersion();
 }
 
 void
@@ -755,6 +708,89 @@ void
 SpecvizPrivate::openGithubIssues()
 {
     QDesktopServices::openUrl(QUrl(QString("%1/issues").arg(GITHUB_URL)));
+}
+
+QVector<int>
+SpecvizPrivate::parseVersion(const QString& version)
+{
+    QVector<int> parts;
+    for (const QString& s : version.split('.')) {
+        bool ok = false;
+        int n = s.toInt(&ok);
+        parts.append(ok ? n : 0);
+    }
+    return parts;
+}
+
+bool
+SpecvizPrivate::latestVersion(const QString& latest, const QString& version)
+{
+    const QVector<int> fa = parseVersion(latest);
+    const QVector<int> tb = parseVersion(version);
+    const long long n = std::max(fa.size(), tb.size());
+    for (int i = 0; i < n; ++i) {
+        const int ai = (i < fa.size()) ? fa[i] : 0;
+        const int bi = (i < tb.size()) ? tb[i] : 0;
+        if (ai < bi)
+            return -1;
+        if (ai > bi)
+            return 1;
+    }
+    return 0;
+}
+
+void
+SpecvizPrivate::checkVersion(bool init)
+{
+    auto* github = new GithubClient(this);
+    connect(github, &GithubClient::releasesReceived, this,
+            [this, github, init](const QList<Github::Release>& releases) {
+                github->deleteLater();
+
+                if (releases.isEmpty()) {
+                    qWarning() << "no github releases found";
+                    return;
+                }
+                const Github::Release& latest = releases.first();
+                if (latestVersion(latest.tag, PROJECT_VERSION)) {
+                    const QString skipTag =
+                        settingsValue("skipTag", QString()).toString();
+                    
+                    if (skipTag == latest.tag && init) {
+                        return;
+                    }
+
+                    if (latest.assets.isEmpty()) {
+                        qWarning() << "no github release assets found";
+                        return;
+                    }
+                    const QString title = QString("There is a new version of Specviz available").arg(PROJECT_NAME);
+                    const QString heading = tr("What's new in version %1").arg(latest.tag);
+                    const QString details = latest.notes;
+                    const QUrl url = latest.url;
+                    const bool download = MessageBox::update(d.window.data(), title, heading, details, url.toString());
+                    if (download) {
+                        const Github::Asset& asset = latest.assets.first();
+                        QDesktopServices::openUrl(QUrl(asset.url));
+                    } else {
+                        setSettingsValue("skipTag", latest.tag);
+                    }
+                }
+                else {
+                    if (!init) {
+                        MessageBox::information(
+                            d.window.data(), tr("Specviz is up to date"),
+                            tr("You are running the latest version of Specviz %1.").arg(PROJECT_VERSION));
+                    }
+                }
+            });
+
+    connect(github, &GithubClient::errorOccurred, this, [github](const QString& error) {
+        qWarning() << "github error:" << error;
+        github->deleteLater();
+    });
+
+    github->setRepository("mikaelsundell", "specviz");
 }
 
 #include "specviz.moc"
