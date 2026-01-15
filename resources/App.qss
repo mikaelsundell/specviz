@@ -43,11 +43,12 @@ QComboBox {
     color: $text;
     font-size: $defaultsize;
     background-color: $basealt;
+    margin-top: 4px;
+    margin-bottom: 4px;
     padding-left: 10px;
     padding-right: 10px;
     padding-bottom: 2px;
     border-radius: 0px;
-    margin-top: 4px;
     outline: none;
     border: 1px solid $border;
 }
