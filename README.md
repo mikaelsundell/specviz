@@ -10,7 +10,6 @@ Introduction
 
 This project is an experimental exploration of spectral data visualization and interaction using C++ and Qt, serving as a lightweight alternative to existing scientific plotting tools. It acts as a testbed for parsing and analyzing spectral data files, with a focus on comparison, intuitive plotting, and interactive exploration.
 
-
 Change log:
 
 | Date       | Description                             |
@@ -121,20 +120,27 @@ https://github.com/mikaelsundell/specviz
 * Issues   
 https://github.com/mikaelsundell/specviz/issues
 
-## License ##
+## License
 
-3rdparty packages and their copyrights:
+### Code
+This project’s source code is licensed under the BSD 3-Clause License.
 
-Qt Toolkit
-Copyright (C) 2025 The Qt Company Ltd. and/or its subsidiary(-ies).    
-Qt is licensed under the GNU Lesser General Public License (LGPL) version 3.    
-For details, see https://www.qt.io/licensing/ and https://doc.qt.io/qt-6/lgpl.html
+### Third-Party Dependencies
 
-QCustomPlot
-Copyright (C) 2011-2025 Emanuel Eichhammer   
-QCustomPlot is licensed under the GNU General Public License (GPL) version 3.   
-or a commercial license.    
-For details, see https://www.qcustomplot.com/
+- **Qt Toolkit**  
+  © The Qt Company Ltd.  
+  Licensed under the GNU Lesser General Public License (LGPL) v3  
+  https://www.qt.io/licensing/
 
--------
-README crafted with a little help from ChatGPT
+- **QCustomPlot**  
+  © Emanuel Eichhammer  
+  Licensed under the GNU General Public License (GPL) v3 or commercial license  
+  https://www.qcustomplot.com/
+
+### Data
+
+Spectral sample files included in this repository are measured using **X-Rite devices** with **ArgyllCMS** tools.  
+They are provided for demonstration and educational purposes only.
+
+### Note
+Users are responsible for complying with the licenses of third-party libraries and tools when using or distributing this software.
